@@ -1,0 +1,32 @@
+{% extends 'legal/legal_layout.html' %}
+{% block title %}Política de Privacidad | SGI Suite{% endblock %}
+{% block legal_content %}
+<h1>Política de Privacidad</h1>
+<p>La presente Política de Privacidad describe cómo <strong>{{ config.name if config else 'Henry Villarroel' }}</strong> (en adelante, "el Propietario"), con domicilio en Caracas, Venezuela, recopila, utiliza y protege su información personal en el contexto del uso del <strong>Sistema de Gestión de Inventario (SGI Suite)</strong>.</p>
+
+<h2>1. Marco Legal</h2>
+<p>Este documento ha sido redactado conforme a lo establecido en la <strong>Constitución de la República Bolivariana de Venezuela (Art. 60)</strong>, la <strong>Ley sobre Mensajes de Datos y Firmas Electrónicas</strong> y los estándares internacionales de protección de datos personales.</p>
+
+<h2>2. Datos Recopilados</h2>
+<p>SGI Suite procesa datos necesarios para la gestión administrativa y operativa del inventario, incluyendo:</p>
+<ul>
+    <li>Datos de Identificación: Nombres, apellidos y Cédula de Identidad de operadores y receptores.</li>
+    <li>Datos de Contacto: Correo electrónico y número telefónico institucional.</li>
+    <li>Datos de Actividad: Registros de auditoría de ingresos, salidas y modificaciones de stock.</li>
+</ul>
+
+<h2>3. Finalidad del Tratamiento</h2>
+<p>La información recopilada se utiliza exclusivamente para:</p>
+<ul>
+    <li>Garantizar la trazabilidad de los movimientos de almacén.</li>
+    <li>Generar reportes y auditorías de inventario precisas.</li>
+    <li>Enviar notificaciones críticas de stock bajo (SGI-Notify).</li>
+    <li>Gestionar niveles de acceso y seguridad del sistema.</li>
+</ul>
+
+<h2>4. Derechos del Usuario (ARCO)</h2>
+<p>Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales. Para ejercer estos derechos, debe contactar con el Administrador del Sistema SGI a través del canal de soporte institucional.</p>
+
+<h2>5. Seguridad de la Información</h2>
+<p>Se implementan medidas técnicas de cifrado y control de acceso (Roles) para proteger los datos almacenados en el servidor local (Soberanía LVSL), garantizando que la información permanezca dentro del perímetro institucional sin exposición no autorizada.</p>
+{% endblock %}

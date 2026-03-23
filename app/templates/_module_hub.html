@@ -1,0 +1,209 @@
+<style>
+    .hub-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.2rem;
+        padding: 1.2rem 0;
+    }
+
+    .module-card {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.5rem 1.25rem 1.25rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        min-height: 280px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .module-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: var(--primary);
+    }
+
+    .module-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 1.2rem;
+        position: relative;
+    }
+
+    .module-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: var(--danger);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        min-width: 22px;
+        height: 22px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        border: 2px solid var(--surface);
+    }
+
+    .module-card h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.6rem;
+        line-height: 1.2;
+    }
+
+    .module-card p {
+        color: var(--text-muted);
+        line-height: 1.4;
+        font-size: 0.85rem;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+
+    .module-btn {
+        width: 100%;
+        padding: 0.8rem;
+        border-radius: 12px;
+        background: var(--primary);
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .module-btn:hover {
+        background: var(--primary-hover);
+        gap: 18px;
+    }
+
+    /* Variantes de color vinculadas a tokens globales */
+    .icon-blue { background: var(--primary-light); color: var(--primary); }
+    .icon-purple { background: var(--purple-light); color: var(--purple); }
+    .icon-green { background: var(--success-light); color: var(--success); }
+    .icon-orange { background: var(--warning-light); color: var(--warning); }
+    .icon-cyan { background: var(--info-light); color: var(--info); }
+    .icon-slate { background: var(--secondary-light); color: var(--secondary); }
+
+</style>
+
+<div class="hub-grid">
+    <!-- Módulo de Análisis (Nuevo) -->
+    <div class="module-card">
+        <div class="module-icon-box icon-purple" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <h3>Análisis e Indicadores</h3>
+        <p>Visualiza estadísticas en tiempo real, gráficas de consumo y el estado crítico del inventario.</p>
+        <a href="{{ url_for('dashboard.analytics') }}" class="module-btn" style="background: #8b5cf6;">
+            Ver Estadísticas <i class="fas fa-chart-line"></i>
+        </a>
+    </div>
+
+    <!-- Módulo artículos -->
+    <div class="module-card">
+        <div class="module-icon-box icon-blue">
+            <i class="fas fa-boxes-stacked"></i>
+            {% if low_stock_articles and low_stock_articles > 0 %}
+            <div class="module-badge">{{ low_stock_articles }}</div>
+            {% endif %}
+        </div>
+        <h3>Gestión de Artículos</h3>
+        <p>Control de inventario, consulta de existencias y gestión de stock mínimo.</p>
+        <a href="{{ url_for('stock.articles') }}" class="module-btn">
+            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Gestión de Ingresos -->
+    <div class="module-card">
+        <div class="module-icon-box icon-green">
+            <i class="fas fa-file-import"></i>
+        </div>
+        <h3>Registro de Ingresos</h3>
+        <p>Incorporación de nuevos materiales y suministros al almacén central.</p>
+        <a href="{{ url_for('stock.inventory_in') }}" class="module-btn">
+            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Gestión de Entregas -->
+    <div class="module-card">
+        <div class="module-icon-box icon-purple">
+            <i class="fas fa-file-export"></i>
+        </div>
+        <h3>Registro de Entregas</h3>
+        <p>Control de salida de materiales hacia departamentos y responsables.</p>
+        <a href="{{ url_for('stock.inventory_out') }}" class="module-btn">
+            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Reportes Centralizados -->
+    <div class="module-card">
+        <div class="module-icon-box icon-orange">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>Reportes y Análisis</h3>
+        <p>Historial demovimientos, estadísticas de consumo y reportes PDF/Excel.</p>
+        <a href="{{ url_for('reports.movements') }}" class="module-btn">
+            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Configuración Institucional -->
+    {% if current_user.is_admin %}
+    <div class="module-card">
+        <div class="module-icon-box icon-cyan">
+            <i class="fas fa-landmark"></i>
+        </div>
+        <h3>Perfil Institucional</h3>
+        <p>Identidad visual de la organización, logos y configuración de contacto.</p>
+        <a href="{{ url_for('admin.config') }}" class="module-btn">
+            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Gestión de Usuarios (Nuevo) -->
+    <div class="module-card">
+        <div class="module-icon-box icon-slate" style="background: rgba(71, 85, 105, 0.1); color: #475569;">
+            <i class="fas fa-users-cog"></i>
+        </div>
+        <h3>Gestión de Usuarios</h3>
+        <p>Control total sobre cuentas, contraseñas y niveles de acceso (Roles).</p>
+        <a href="{{ url_for('admin.list_users') }}" class="module-btn" style="background: #475569;">
+            Gestionar Cuentas <i class="fas fa-user-shield"></i>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Soporte Técnico -->
+    <div class="module-card">
+        <div class="module-icon-box icon-slate">
+            <i class="fas fa-microchip"></i>
+        </div>
+        <h3>SGI-Core | Estado</h3>
+        <p>Información técnica del servidor, versión del núcleo y diagnóstico de sistema.</p>
+        <a href="{{ url_for('admin.status') }}" class="module-btn" style="background: var(--secondary);">
+            Ver Diagnóstico <i class="fas fa-tools"></i>
+        </a>
+    </div>
+</div>

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-building" style="color: var(--primary);"></i> SGI-Stock | Departamentos</h1>
+</div>
+
+<div class="form-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <div class="card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 15px;">Nuevo Departamento/Sede</h3>
+        <form method="POST" action="{{ url_for('stock.departments') }}">
+            <div class="form-group">
+                <label>Nombre del Departamento</label>
+                <input type="text" name="name" required placeholder="Ej. Administración, Almacén Central...">
+            </div>
+            <div class="form-group">
+                <label>Descripción/Ubicación</label>
+                <textarea name="description" placeholder="Opcional" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:0.5rem;"></textarea>
+            </div>
+            
+            <h4 style="margin-top: 15px; margin-bottom: 15px; color: var(--primary); font-size: 0.95rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Datos del Responsable (Opcional)</h4>
+            
+            <div class="form-group">
+                <label>Nombre del Responsable</label>
+                <input type="text" name="manager_name" placeholder="Ej. Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Cargo Asignado</label>
+                <select name="manager_role">
+                    <option value="">Seleccione un cargo...</option>
+                    <option value="Coordinador">Coordinador</option>
+                    <option value="Jefe de Departamento">Jefe de Departamento</option>
+                    <option value="Encargado">Encargado</option>
+                    <option value="Empleado">Empleado</option>
+                </select>
+            </div>
+            <div class="form-group" style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label style="font-size:0.85rem;">Desde (Inicio)</label>
+                    <input type="date" name="manager_date_from">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:0.85rem;">Hasta (Fin)</label>
+                    <input type="date" name="manager_date_to">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Guardar Departamento</button>
+        </form>
+    </div>
+
+    <div class="card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 15px;">Unidades de Destino SGI</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Departamento</th>
+                        <th>Descripción</th>
+                        <th>Responsable</th>
+                        <th>Período de Ejercicio</th>
+                        <th style="width: 100px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in departments %}
+                    <tr>
+                        <td><strong>{{ d.name }}</strong></td>
+                        <td>{{ d.description or '-' }}</td>
+                        <td>
+                            {% if d.manager_name %}
+                            <div style="font-weight: 600; color: var(--text-main);">{{ d.manager_name }}</div>
+                            <div style="font-size: 0.8rem; color: var(--primary); font-weight: 500;">{{ d.manager_role or 'Empleado' }}</div>
+                            {% else %}
+                            <span style="color:#94a3b8; font-style:italic; font-size:0.85rem;">Sin Asignar</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">
+                            {% if d.manager_date_from %}
+                            <strong>Desde:</strong> {{ d.manager_date_from.strftime('%d/%m/%Y') }}<br>
+                            <strong>Hasta:</strong> {{ d.manager_date_to.strftime('%d/%m/%Y') if d.manager_date_to else '<span style="color:var(--success);">Vigente Actualidad</span>'|safe }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="openEditModal('{{ d.id }}', '{{ d.name }}', '{{ d.description or '' }}', '{{ d.manager_name or '' }}', '{{ d.manager_role or '' }}', '{{ d.manager_date_from or '' }}', '{{ d.manager_date_to or '' }}')" class="btn" style="padding: 5px 10px; background: var(--bg-color); color: var(--text-main);">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('stock.delete_department', id=d.id) }}" onsubmit="return confirm('¿Eliminar departamento?')">
+                                    <button type="submit" class="btn" style="padding: 5px 10px; background: #fee2e2; color: #ef4444;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 2rem; color: #94a3b8;">No hay departamentos o sedes registrados aún.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edición -->
+<div id="editModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+    <div class="card" style="width:500px; margin: 50px auto; padding:2rem; max-height: 90vh; overflow-y: auto;">
+        <h3>Editar Departamento / Sede</h3>
+        <form id="editForm" method="POST">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="name" id="edit_name" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción / Ubicación</label>
+                <textarea name="description" id="edit_desc" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:0.5rem;"></textarea>
+            </div>
+            
+            <h4 style="margin: 15px 0; color: var(--primary); font-size: 0.9rem;">Responsable</h4>
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="manager_name" id="edit_m_name">
+            </div>
+            <div class="form-group">
+                <label>Cargo</label>
+                <select name="manager_role" id="edit_m_role">
+                    <option value="">Seleccione...</option>
+                    <option value="Coordinador">Coordinador</option>
+                    <option value="Jefe de Departamento">Jefe de Departamento</option>
+                    <option value="Encargado">Encargado</option>
+                    <option value="Empleado">Empleado</option>
+                </select>
+            </div>
+            <div class="form-group" style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label>Desde</label>
+                    <input type="date" name="manager_date_from" id="edit_m_from">
+                </div>
+                <div style="flex:1;">
+                    <label>Hasta</label>
+                    <input type="date" name="manager_date_to" id="edit_m_to">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="button" onclick="document.getElementById('editModal').style.display='none'" class="btn" style="flex:1;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModal(id, name, desc, mName, mRole, mFrom, mTo) {
+    document.getElementById('editForm').action = "/departments/edit/" + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_desc').value = desc;
+    document.getElementById('edit_m_name').value = mName;
+    document.getElementById('edit_m_role').value = mRole;
+    document.getElementById('edit_m_from').value = mFrom;
+    document.getElementById('edit_m_to').value = mTo;
+    document.getElementById('editModal').style.display = 'block';
+}
+</script>
+
+{% endblock %}

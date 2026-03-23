@@ -1,0 +1,28 @@
+{% extends 'legal/legal_layout.html' %}
+{% block title %}Preguntas Frecuentes (FAQ) | SGI Suite{% endblock %}
+{% block legal_content %}
+<h1>Preguntas Frecuentes (FAQ)</h1>
+<p>Encuentre respuestas rápidas a sus dudas sobre el funcionamiento de <strong>SGI Suite</strong>.</p>
+
+<h2>1. ¿Cómo registro la entrada de un artículo?</h2>
+<p>Vaya al módulo <strong>"Registrar Ingreso"</strong> desde el panel principal. Seleccione el artículo, ingrese la cantidad y el precio (si aplica). El sistema actualizará automáticamente el stock total.</p>
+
+<h2>2. ¿Qué es el "Stock Mínimo"?</h2>
+<p>Es la cantidad de seguridad definida para cada producto. Si el inventario cae por debajo de este número, SGI-Notify enviará una alerta automática al grupo de administración para evitar desabastecimiento.</p>
+
+<h2>3. ¿Cómo genero un reporte en PDF?</h2>
+<p>En la sección <strong>"Historial de Movimientos"</strong>, utilice los filtros de mes y año si lo desea, y haga clic en el botón <strong>"Generar PDF"</strong>. El sistema compilará un documento oficial listo para imprimir.</p>
+
+<h2>4. ¿Puedo borrar una categoría o departamento?</h2>
+<p>Solo los Administradores pueden borrar estos registros. Sin embargo, el sistema bloqueará el borrado si existen artículos o movimientos asociados a ellos para proteger la integridad de los datos históricos.</p>
+
+<h2>5. ¿Qué hago si olvidé mi contraseña?</h2>
+<p>Debe contactar al Administrador Jefe del sistema, quien podrá restablecer su contraseña desde el módulo de <strong>"Gestión de Usuarios"</strong>.</p>
+<h2>6. ¿Bajo qué licencia se distribuye SGI Suite?</h2>
+<p>SGI Suite utiliza un esquema de <strong>Doble Licenciamiento</strong>:</p>
+<ul>
+    <li><strong>GNU AGPLv3:</strong> Licencia principal para uso internacional y general, asegurando la libertad del código incluso en servicios de red.</li>
+    <li><strong>Licencia Venezolana de Software Libre (LVSL):</strong> Licencia específica para su aplicación institucional y soberana dentro del territorio venezolano.</li>
+</ul>
+<p>Esto garantiza que el sistema sea auditable, adaptable y soberano para cualquier institución o empresa en el mundo.</p>
+{% endblock %}

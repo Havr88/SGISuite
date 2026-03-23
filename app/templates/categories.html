@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-tags" style="color: var(--primary);"></i> SGI-Stock | Categorías</h1>
+</div>
+
+<div class="form-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <div class="card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 15px;">Nueva Categoría</h3>
+        <form method="POST" action="{{ url_for('stock.categories') }}">
+            <div class="form-group">
+                <label>Nombre de Categoría</label>
+                <input type="text" name="name" required placeholder="Ej. Papelería, Limpieza...">
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="description" placeholder="Opcional" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:0.5rem;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Guardar Categoría</button>
+        </form>
+    </div>
+
+    <div class="card" style="margin-bottom: 0;">
+        <h3 style="margin-bottom: 15px;">Listado de Categorías SGI</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                        <th>Artículos</th>
+                        <th style="width: 100px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in categories %}
+                    <tr>
+                        <td><strong>{{ c.name }}</strong></td>
+                        <td>{{ c.description }}</td>
+                        <td><span class="badge" style="background:var(--primary); color:white;">{{ c.articles|length }}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="openEditModal('{{ c.id }}', '{{ c.name }}', '{{ c.description or '' }}')" class="btn" style="padding: 5px 10px; background: var(--bg-color); color: var(--text-main);">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('stock.delete_category', id=c.id) }}" onsubmit="return confirm('¿Eliminar categoría?')">
+                                    <button type="submit" class="btn" style="padding: 5px 10px; background: #fee2e2; color: #ef4444;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align:center;">No hay categorías registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edición -->
+<div id="editModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+    <div class="card" style="width:400px; margin: 100px auto; padding:2rem;">
+        <h3>Editar Categoría</h3>
+        <form id="editForm" method="POST">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="name" id="edit_name" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="description" id="edit_desc" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:0.5rem;"></textarea>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button type="button" onclick="document.getElementById('editModal').style.display='none'" class="btn" style="flex:1;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex:1;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModal(id, name, desc) {
+    document.getElementById('editForm').action = "/categories/edit/" + id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_desc').value = desc;
+    document.getElementById('editModal').style.display = 'block';
+}
+</script>
+
+{% endblock %}

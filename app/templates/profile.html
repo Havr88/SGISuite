@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <div>
+        <h1 style="font-size: 2.2rem; margin-bottom: 5px;"><i class="fas fa-user-circle" style="color: var(--primary);"></i> Perfil de Usuario</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Gestiona tu información personal y credenciales de acceso.</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <form method="POST" class="form-container">
+        <div class="form-grid">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Nombre de Usuario</label>
+                <input type="text" value="{{ user.username }}" disabled style="background: var(--bg-color); cursor: not-allowed;">
+                <small style="color: var(--text-muted);">El nombre de usuario no puede ser modificado.</small>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-id-card"></i> Nombre Completo</label>
+                <input type="text" name="full_name" value="{{ user.full_name or '' }}" placeholder="Ej. Henry Villarroel">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                <input type="email" name="email" value="{{ user.email or '' }}" placeholder="correo@ejemplo.com">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-phone"></i> Teléfono de Contacto</label>
+                <input type="text" name="phone" value="{{ user.phone or '' }}" placeholder="04XX-XXXXXXX">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-user-tag"></i> Rol de Sistema</label>
+                <input type="text" value="{{ user.role or 'Invitado' }}" disabled style="background: var(--bg-color); cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Nueva Contraseña</label>
+                <input type="password" name="new_password" placeholder="Dejar en blanco para no cambiar">
+                <small style="color: var(--text-muted);">Usa una combinación fuerte de caracteres.</small>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem; display: flex; justify-content: flex-end; gap: 15px;">
+            <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--bg-color); color: var(--text-main);">Cancelar</a>
+            <button type="submit" class="btn" style="background: var(--primary); color: white;">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-container {
+        padding: 1rem;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: var(--text-main);
+        font-size: 0.9rem;
+    }
+    .form-group input {
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: var(--surface);
+        color: var(--text-main);
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+</style>
+{% endblock %}

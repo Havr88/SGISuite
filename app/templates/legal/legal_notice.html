@@ -1,0 +1,23 @@
+{% extends 'legal/legal_layout.html' %}
+{% block title %}Aviso Legal | SGI Suite{% endblock %}
+{% block legal_content %}
+<h1>Aviso Legal</h1>
+<p>De acuerdo con la normativa vigente en Venezuela, se informa a los usuarios los datos identificativos del titular de este sistema:</p>
+
+<h2>1. Titularidad</h2>
+<ul>
+    <li><strong>Titular:</strong> {{ config.name if config else 'Henry Villarroel' }}</li>
+    <li><strong>Registro de Información Fiscal (RIF):</strong> {{ config.rif if config else 'V-12345678-0' }}</li>
+    <li><strong>Domicilio Fiscal:</strong> Caracas, Venezuela</li>
+    <li><strong>Contacto:</strong> {{ config.email if config else 'soporte@sgi-suite.ve' }}</li>
+</ul>
+
+<h2>2. Objeto del Sistema</h2>
+<p>SGI Suite (Sistema de Gestión de Inventario) es una herramienta administrativa diseñada para la optimización del control de stock institucional, permitiendo la trazabilidad y auditoría de flujos de materiales.</p>
+
+<h2>3. Condiciones de Acceso</h2>
+<p>El acceso y navegación por el sistema atribuye la condición de <strong>Usuario Operador</strong> e implica la aceptación total y sin reservas de las advertencias legales contenidas en este aviso.</p>
+
+<h2>4. Propiedad y Registro</h2>
+<p>Los nombres, logotipos y marcas comerciales mostrados son propiedad de sus respectivos dueños institucionales o del desarrollador según corresponda.</p>
+{% endblock %}

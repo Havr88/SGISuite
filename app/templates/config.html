@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-tools" style="color: var(--primary);"></i> SGI-Core | Configuración Global</h1>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h3 style="margin-bottom: 20px;">Identidad Institucional de la Suite SGI</h3>
+    <form method="POST" action="{{ url_for('admin.config') }}" enctype="multipart/form-data">
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Nombre Formal de la Institución</label>
+                <input type="text" name="name" value="{{ config.name }}" required>
+            </div>
+            <div class="form-group">
+                <label>Nombre Comercial / Siglas</label>
+                <input type="text" name="commercial_name" value="{{ config.commercial_name }}">
+            </div>
+            <div class="form-group">
+                <label>RIF / Identificación Fiscal</label>
+                <input type="text" name="rif" value="{{ config.rif }}">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Dirección Principal</label>
+                <input type="text" name="address" value="{{ config.address }}">
+            </div>
+            <div class="form-group">
+                <label>Estado</label>
+                <select name="state" id="stateSelect" required>
+                    <option value="">Seleccione un Estado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Municipio</label>
+                <select name="municipality" id="municipalitySelect" required>
+                    <option value="">Seleccione un Municipio</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Parroquia</label>
+                <select name="parish" id="parishSelect" required>
+                    <option value="">Seleccione una Parroquia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ciudad</label>
+                <select name="city" id="citySelect" required>
+                    <option value="">Seleccione una Ciudad</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Teléfono de Contacto</label>
+                <input type="text" name="phone" value="{{ config.phone }}">
+            </div>
+            <div class="form-group">
+                <label>Email Institucional</label>
+                <input type="email" name="email" value="{{ config.email }}">
+            </div>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 20px; color: var(--primary);">
+            <i class="fab fa-telegram"></i> SGI-Notify (Alertas Inteligentes)
+        </h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background: rgba(37, 99, 235, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed var(--primary);">
+            <div class="form-group">
+                <label>Telegram Bot Token</label>
+                <input type="password" name="telegram_bot_token" value="{{ config.telegram_bot_token or '' }}" placeholder="Ej: 123456:ABC-DEF1234ghIkl-zyx57W2v1u... ">
+                <small style="color: var(--text-muted); display: block; margin-top: 5px;">Token proporcionado por BotFather.</small>
+            </div>
+            <div class="form-group">
+                <label>Telegram Chat ID</label>
+                <input type="text" name="telegram_chat_id" value="{{ config.telegram_chat_id or '' }}" placeholder="Ej: -100123456789">
+                <small style="color: var(--text-muted); display: block; margin-top: 5px;">ID del grupo o usuario receptor.</small>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 20px; color: var(--primary);">
+            <i class="fas fa-network-wired"></i> SGI-Sync (API de Integración)
+        </h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr; gap:20px; background: rgba(139, 92, 246, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed #8b5cf6;">
+            <div class="form-group">
+                <label>Token de Acceso (API Key)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" name="api_key" id="apiKeyInput" value="{{ config.api_key or '' }}" placeholder="Genera una clave para permitir el acceso por API">
+                    <button type="button" class="btn" style="background:#e2e8f0; color:#475569;" onclick="document.getElementById('apiKeyInput').value = Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b=>b.toString(16).padStart(2,'0')).join('')"><i class="fas fa-random"></i> Generar</button>
+                </div>
+                <small style="color: var(--text-muted); display: block; margin-top: 5px;">Esta clave debe ser enviada en la cabecera HTTP <code>X-API-Key</code> al consumir SGI-Sync.</small>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 30px;">
+            <label>Logo Institucional</label>
+            <div style="display:flex; align-items:center; gap:20px; border:1px solid #e2e8f0; padding:15px; border-radius:12px;">
+                {% if config.logo_filename %}
+                <img src="{{ url_for('static', filename='img/logos/' + config.logo_filename) }}" style="height:60px; border-radius:8px;">
+                {% else %}
+                <div style="height:60px; width:60px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:0.75rem; color:#64748b;">Sin Logo</div>
+                {% endif %}
+                <input type="file" name="logo" accept="image/*">
+            </div>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Se recomienda formato PNG o JPG con fondo claro/transparente.</p>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 20px; color: var(--secondary);">
+            <i class="fas fa-database"></i> SGI-Core | Infraestructura de Datos
+        </h3>
+        <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background: rgba(16, 185, 129, 0.05); padding: 20px; border-radius: 12px; border: 1px dashed var(--secondary); margin-bottom: 20px;">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Motor de Base de Datos</label>
+                <select name="db_engine" id="dbEngineSelect" onchange="toggleDbFields()">
+                    <option value="sqlite" {% if db_config.engine == 'sqlite' %}selected{% endif %}>SQLite (Local / Desarrollo)</option>
+                    <option value="mysql" {% if db_config.engine == 'mysql' %}selected{% endif %}>MySQL / MariaDB (Producción)</option>
+                    <option value="postgresql" {% if db_config.engine == 'postgresql' %}selected{% endif %}>PostgreSQL (Producción / Cloud)</option>
+                </select>
+                <small style="color: var(--text-muted); display: block; margin-top: 5px;">SQLite es ideal para intranet pequeñas. MariaDB/Postgres se recomiendan para alta concurrencia.</small>
+            </div>
+
+            <div class="db-external-fields" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; {% if db_config.engine == 'sqlite' %}display: none;{% endif %}" id="dbExternalFields">
+                <div class="form-group">
+                    <label>Host / Servidor</label>
+                    <input type="text" name="db_host" value="{{ db_config.host or 'localhost' }}" placeholder="Ej: 127.0.0.1 o db.ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label>Puerto</label>
+                    <input type="text" name="db_port" value="{{ db_config.port or '' }}" placeholder="Por defecto: 3306 (MySQL) o 5432 (PG)">
+                </div>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" name="db_user" value="{{ db_config.user or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="db_password" value="{{ db_config.password or '' }}">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Nombre de la Base de Datos</label>
+                    <input type="text" name="db_name" value="{{ db_config.name or 'inventory' }}">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:20px; padding:15px; font-size:1.1rem; font-weight:700;">
+            <i class="fas fa-save"></i> Guardar Cambios en SGI-Core
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stateSelect = document.getElementById('stateSelect');
+    const munSelect = document.getElementById('municipalitySelect');
+    const parSelect = document.getElementById('parishSelect');
+    const citySelect = document.getElementById('citySelect');
+
+    const currentState = "{{ config.state|default('', true) }}";
+    const currentMun = "{{ config.municipality|default('', true) }}";
+    const currentPar = "{{ config.parish|default('', true) }}";
+    const currentCity = "{{ config.city|default('', true) }}";
+
+    let veData = [];
+
+    fetch('{{ url_for("static", filename="ve_data.json") }}')
+        .then(response => response.json())
+        .then(data => {
+            veData = data;
+            // Llenar Estados
+            veData.forEach(estado => {
+                let option = new Option(estado.estado, estado.estado);
+                stateSelect.add(option);
+            });
+
+            // Pre-seleccionar si hay datos
+            if (currentState && currentState !== "Estado") {
+                stateSelect.value = currentState;
+                populateMunCity();
+                if (currentMun && currentMun !== "Municipio") {
+                    munSelect.value = currentMun;
+                    populatePar();
+                    if (currentPar && currentPar !== "Parroquia") parSelect.value = currentPar;
+                }
+                if (currentCity && currentCity !== "Ciudad") citySelect.value = currentCity;
+            }
+        });
+
+    function populateMunCity() {
+        munSelect.innerHTML = '<option value="">Seleccione un Municipio</option>';
+        parSelect.innerHTML = '<option value="">Seleccione una Parroquia</option>';
+        citySelect.innerHTML = '<option value="">Seleccione una Ciudad</option>';
+        
+        const st = veData.find(e => e.estado === stateSelect.value);
+        if (st) {
+            st.municipios.forEach(mun => {
+                munSelect.add(new Option(mun.municipio, mun.municipio));
+            });
+            if (st.ciudades) {
+                st.ciudades.forEach(city => {
+                    citySelect.add(new Option(city, city));
+                });
+            }
+        }
+    }
+
+    function populatePar() {
+        parSelect.innerHTML = '<option value="">Seleccione una Parroquia</option>';
+        const st = veData.find(e => e.estado === stateSelect.value);
+        if (st) {
+            const mun = st.municipios.find(m => m.municipio === munSelect.value);
+            if (mun && mun.parroquias) {
+                mun.parroquias.forEach(par => {
+                    parSelect.add(new Option(par, par));
+                });
+            }
+        }
+    }
+
+    stateSelect.addEventListener('change', populateMunCity);
+    munSelect.addEventListener('change', populatePar);
+});
+
+function toggleDbFields() {
+    const engine = document.getElementById('dbEngineSelect').value;
+    const fields = document.getElementById('dbExternalFields');
+    if (engine === 'sqlite') {
+        fields.style.display = 'none';
+    } else {
+        fields.style.display = 'grid';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .legal-container {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+        color: var(--text-main);
+    }
+    .legal-card {
+        padding: 3rem;
+        background: var(--surface);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid var(--border-color);
+    }
+    .legal-card h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        color: var(--primary);
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 0.5rem;
+    }
+    .legal-card h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 2rem 0 1rem 0;
+        color: var(--text-main);
+    }
+    .legal-card p {
+        margin-bottom: 1.5rem;
+        font-size: 1.05rem;
+    }
+    .legal-card ul {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+    }
+    .legal-card li {
+        margin-bottom: 0.5rem;
+    }
+    .legal-meta {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+        display: flex;
+        gap: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+    }
+    .legal-navigation {
+        margin-top: 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+    @media (max-width: 768px) {
+        .legal-card {
+            padding: 1.5rem;
+        }
+        .legal-card h1 {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<div class="legal-container">
+    <div class="legal-card">
+        <div class="legal-meta">
+            <span><i class="fas fa-calendar-alt"></i> Última actualización: 22 de Marzo, 2026</span>
+            <span><i class="fas fa-map-marker-alt"></i> Jurisdicción: Caracas, Venezuela</span>
+        </div>
+        
+        {% block legal_content %}{% endblock %}
+        
+        <div class="legal-navigation">
+            <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--bg-color); color: var(--text-main);">
+                <i class="fas fa-arrow-left"></i> Volver al Inicio
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Imprimir Documento
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

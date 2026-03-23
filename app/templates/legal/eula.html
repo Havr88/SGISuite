@@ -1,0 +1,29 @@
+{% extends 'legal/legal_layout.html' %}
+{% block title %}Acuerdo de Licencia (EULA) | SGI Suite{% endblock %}
+{% block legal_content %}
+<h1>Acuerdo de Licencia de Usuario Final (EULA)</h1>
+<p>Este es un acuerdo legal entre <strong>{{ config.name if config else 'Henry Villarroel' }}</strong> ("el Licenciante") y usted, el usuario final ("el Licenciatario"), para el uso del software <strong>SGI Suite</strong>.</p>
+
+<h2>1. Concesión de Licencia</h2>
+<p>El Licenciante otorga al Licenciatario una licencia no exclusiva, no transferible y limitada para instalar y utilizar el software exclusivamente para fines administrativos internos institucional. Esta licencia no otorga derechos de propiedad sobre el software.</p>
+
+<h2>2. Restricciones</h2>
+<p>El Licenciatario no podrá, ni permitirá a terceros:</p>
+<ul>
+    <li>Realizar ingeniería inversa, descompilar o desensamblar el software.</li>
+    <li>Modificar, adaptar o crear trabajos derivados basados en el software.</li>
+    <li>Distribuir, alquilar, arrendar o sublicenciar el software a terceros sin consentimiento expreso por escrito.</li>
+    <li>Utilizar el software para el desarrollo de productos competitivos.</li>
+</ul>
+
+<h2>3. Vigencia y Terminación</h2>
+<p>Esta licencia entra en vigor en el momento de la instalación y permanece vigente mientras el Licenciatario mantenga su relación contractual con la institución. El Licenciante puede terminar esta licencia en cualquier momento si el Licenciatario incumple estos términos.</p>
+
+<h2>4. Propiedad Intelectual y Licenciamiento Dual</h2>
+<p>SGI Suite es un producto impulsado bajo los preceptos de **Soberanía Tecnológica LVSL** y la libertad del software global. El software se entrega bajo un esquema dual:</p>
+<ul>
+    <li><strong>GNU AGPLv3:</strong> Para uso internacional, por individuos, instituciones o empresas en cualquier parte del mundo. Como licencia principal, garantiza que el código permanezca libre incluso cuando se ofrece como servicio.</li>
+    <li><strong>LVSL (Licencia Venezolana de Software Libre):</strong> Aplicable específicamente para usuarios y despliegues dentro del territorio nacional de Venezuela, reforzando el marco legal de soberanía.</li>
+</ul>
+<p>Cualquier modificación o redistribución debe respetar los términos de las licencias mencionadas. Todos los derechos de diseño original permanecen con el Licenciante.</p>
+{% endblock %}

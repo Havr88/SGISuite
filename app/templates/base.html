@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGI Suite &bull; Sistema de Gestión de Inventario v1.0</title>
+    <!-- Lanzamiento Oficial: Sábado, 22 de Marzo de 2026 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        /* Tipografías Locales */
+        @font-face {
+            font-family: 'Quicksand';
+            src: url('{{ url_for("static", filename="fonts/Quicksand.ttf") }}') format('truetype');
+            font-weight: 300 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'DejaVu Sans';
+            src: url('{{ url_for("static", filename="fonts/DejaVuSans.ttf") }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        :root {
+            --primary: #2563eb;
+            --primary-light: rgba(37, 99, 235, 0.1);
+            --secondary: #64748b;
+            --secondary-light: rgba(100, 116, 139, 0.1);
+            --success: #10b981;
+            --success-light: rgba(16, 185, 129, 0.1);
+            --warning: #f59e0b;
+            --warning-light: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --danger-light: rgba(239, 68, 68, 0.1);
+            --info: #06b6d4;
+            --info-light: rgba(6, 182, 212, 0.1);
+            --purple: #8b5cf6;
+            --purple-light: rgba(139, 92, 246, 0.1);
+            
+            --bg-color: #f8fafc;
+            --surface: #ffffff;
+            --sidebar-bg: #ffffff;
+            --sidebar-text: #000000;
+            --text-main: #000000;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            --header-bg: rgba(255, 255, 255, 0.7);
+            --footer-bg: #ffffff;
+            --bar-height: 65px;
+            --sidebar-width: 280px;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #f1f5f9;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            
+            --header-bg: rgba(15, 23, 42, 0.7);
+            --footer-bg: #1e293b;
+            --primary-light: rgba(59, 130, 246, 0.2);
+            --secondary-light: rgba(148, 163, 184, 0.2);
+            --success-light: rgba(16, 185, 129, 0.2);
+            --warning-light: rgba(245, 158, 11, 0.2);
+            --danger-light: rgba(239, 68, 68, 0.2);
+            --info-light: rgba(6, 182, 212, 0.2);
+            --purple-light: rgba(139, 92, 246, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Quicksand', 'DejaVu Sans', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Quicksand', 'DejaVu Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: var(--bar-height) 1fr var(--bar-height);
+            min-height: 100dvh;
+            transition: all 0.3s ease;
+        }
+
+        .main-header, 
+        .main-content, 
+        .main-footer {
+            grid-column: 1 / -1 !important;
+        }
+
+        /* Sidebar as Permanent Drawer */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 0.8rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .menu-toggle {
+            display: block !important;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            grid-column: 1;
+            grid-row: 2;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 0.8rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+            height: calc(100vh - var(--bar-height));
+            position: sticky;
+            top: var(--bar-height);
+            z-index: 1001;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+
+        /* Scrollbar elegante para el Panel Lateral */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-area h2 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 0.8rem;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links li a i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-links li a:hover, .nav-links li a.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .user-area {
+            margin-top: auto;
+            padding-top: 0.8rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--sidebar-text);
+        }
+
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white; /* Asegurar contraste en el texto del avatar */
+        }
+
+        /* User Dropdown */
+        .user-dropdown {
+            position: relative;
+            z-index: 1002;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 10px;
+            border-radius: 12px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .user-info:hover {
+            background: var(--primary-light);
+        }
+        .user-details {
+            text-align: left;
+        }
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        .user-version {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 220px;
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            margin-top: 10px;
+            transform: translateY(10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dropdown-menu.active {
+            display: flex;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .dropdown-menu a {
+            padding: 12px 15px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+        .dropdown-menu a:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 8px 5px;
+        }
+
+        .main-header {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            height: var(--bar-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: adjust-header linear both;
+            animation-timeline: scroll();
+            animation-range: 0 100px;
+        }
+
+        @keyframes adjust-header {
+            to {
+                height: 60px;
+                background: var(--header-scroll-bg);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        .main-content {
+            grid-column: 2;
+            grid-row: 2;
+            padding: 2rem;
+            min-width: 0; /* Evita que el contenido desborde el grid */
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media screen and (max-width: 1150px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-footer {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            backdrop-filter: blur(10px);
+            width: 100%;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: left;
+        }
+
+        .footer-col h4 {
+            color: var(--text-main);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-col ul li a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-col ul li a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media screen and (max-width: 768px) {
+            .footer-bottom {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            .footer-grid {
+                text-align: center;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .btn-toggle-view {
+            background: var(--background);
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-toggle-view:hover {
+            background: var(--primary);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .hub-only { display: block; }
+        .sidebar-only { display: none; }
+
+        /* Theme-only elements */
+        .dark-only { display: none; }
+        .light-only { display: inline-block; }
+        [data-theme="dark"] .dark-only { display: inline-block; }
+        [data-theme="dark"] .light-only { display: none; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-hover), #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: var(--surface);
+            border-radius: 15px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: rgba(241, 245, 249, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+            color: var(--text-main);
+        }
+
+        [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+            background-color: #020617;
+            border-color: #334155;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+            background-color: #fff;
+        }
+
+        [data-theme="dark"] input:focus, [data-theme="dark"] select:focus, [data-theme="dark"] textarea:focus {
+            background-color: #0f172a;
+        }
+
+        .badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        @media screen and (max-width: 900px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .sidebar {
+                width: 280px;
+            }
+            .backdrop.active {
+                display: block;
+            }
+            .main-header {
+                grid-column: 1;
+                padding: 1rem;
+            }
+            .main-content {
+                grid-column: 1;
+                padding: 1.5rem;
+            }
+            .main-footer {
+                grid-column: 1;
+            }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .desktop-only {
+            display: block;
+        }
+
+        @media screen and (max-width: 900px) {
+            .desktop-only {
+                display: none !important;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="backdrop" id="sidebarBackdrop"></div>
+
+    <div class="sidebar" id="mainSidebar">
+        <ul class="nav-links">
+            <li>
+                <a href="{{ url_for('dashboard.index') }}">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('stock.inventory_in') }}">
+                    <i class="fas fa-arrow-down"></i> Registrar Ingreso
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('stock.inventory_out') }}">
+                    <i class="fas fa-arrow-up"></i> Registrar Entrega
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('stock.articles') }}">
+                    <i class="fas fa-box"></i> Artículos
+                </a>
+            </li>
+            <li style="margin-top: 1.5rem; padding-left: 1rem; font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Reportes</li>
+            <li>
+                <a href="{{ url_for('reports.movements') }}">
+                    <i class="fas fa-history"></i> Historial Movimientos
+                </a>
+            </li>
+            {% if current_user.is_admin %}
+            <li style="margin-top: 1.5rem; padding-left: 1rem; font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Maestros SGI</li>
+            <li>
+                <a href="{{ url_for('stock.categories') }}">
+                    <i class="fas fa-tags"></i> Categorías
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('stock.departments') }}">
+                    <i class="fas fa-building"></i> Departamentos
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.config') }}">
+                    <i class="fas fa-cogs"></i> Institución
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.list_users') }}">
+                    <i class="fas fa-users-cog"></i> Usuarios SGI
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <div class="user-area">
+            <div class="avatar">{{ current_user.username[0]|upper }}</div>
+            <div>
+                <div style="font-weight: 600; font-size: 0.95rem;">{{ current_user.username }}</div>
+                <a href="{{ url_for('auth.logout') }}" style="color: #ef4444; font-size: 0.8rem; text-decoration: none;">Cerrar Sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <header class="main-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="menu-toggle" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{{ url_for('dashboard.index') }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                {% if config and config.logo_filename %}
+                <img src="{{ url_for('static', filename='img/logos/' + config.logo_filename) }}" style="height: 35px; border-radius: 5px;">
+                {% endif %}
+                <h2 style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">
+                    {{ (config.commercial_name or 'SGI Suite')|upper }}
+                </h2>
+            </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Selector de Tema -->
+            <button class="btn-toggle-view" id="themeToggle" title="Cambiar Tema">
+                <i class="fas fa-moon dark-only"></i>
+                <i class="fas fa-sun light-only"></i>
+            </button>
+
+            <!-- Botón Volver al Hub -->
+            {% if request.path != url_for('dashboard.index') %}
+            <a href="{{ url_for('dashboard.index') }}" class="btn-toggle-view" title="Volver al Panel de Módulos" style="text-decoration: none; background: var(--primary-light);">
+                <i class="fas fa-th"></i>
+            </a>
+            {% endif %}
+
+            <!-- Menú de Usuario -->
+            <div class="user-dropdown">
+                <div class="user-info" id="userMenuBtn">
+                    <div class="user-details desktop-only">
+                        <div class="user-name">{{ current_user.username }}</div>
+                        <div class="user-version">SGI-Stock v1.0</div>
+                    </div>
+                    <div class="avatar" style="background: var(--bg-color); color: var(--primary); border: 1px solid var(--border-color); margin-left: 10px;">
+                        {{ current_user.username[0]|upper }}
+                    </div>
+                    <i class="fas fa-chevron-down" style="font-size: 0.7rem; color: var(--text-muted); margin-left: 5px;"></i>
+                </div>
+                <div class="dropdown-menu" id="userDropdown">
+                    <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
+                        <strong style="display: block; font-size: 0.9rem;">{{ current_user.full_name or current_user.username }}</strong>
+                        <small style="color: var(--text-muted);">{{ current_user.role or 'Administrador' }}</small>
+                    </div>
+                    <a href="{{ url_for('auth.profile') }}"><i class="fas fa-user-edit"></i> Mi Perfil</a>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.list_users') }}"><i class="fas fa-users-cog"></i> Gestión de Usuarios</a>
+                    <a href="{{ url_for('admin.config') }}"><i class="fas fa-cog"></i> Configuración SGI</a>
+                    {% endif %}
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ url_for('auth.logout') }}" style="color: var(--danger);"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>SGI-Legal</h4>
+                <ul>
+                    <li><a href="{{ url_for('legal.privacy') }}">Política de Privacidad</a></li>
+                    <li><a href="{{ url_for('legal.terms') }}">Términos y Condiciones</a></li>
+                    <li><a href="{{ url_for('legal.cookies') }}">Política de Cookies</a></li>
+                    <li><a href="{{ url_for('legal.eula') }}">Acuerdo de Licencia (EULA)</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Cumplimiento</h4>
+                <ul>
+                    <li><a href="{{ url_for('legal.legal_notice') }}">Aviso Legal</a></li>
+                    <li><a href="{{ url_for('legal.disclaimer') }}">Descargo de Responsabilidad</a></li>
+                    <li><a href="{{ url_for('legal.aup') }}">Uso Aceptable (AUP)</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Soporte y Más</h4>
+                <ul>
+                    <li><a href="{{ url_for('legal.faq') }}">Preguntas Frecuentes</a></li>
+                    <li><a href="{{ url_for('legal.about') }}">Acerca de SGI Suite</a></li>
+                    <li><a href="mailto:{{ config.email if config else 'soporte@sgi-suite.ve' }}">Soporte Técnico</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 <strong>{{ config.name if config else 'Henry Villarroel' }}</strong> &bull; SGI-Stock v1.0</p>
+            <p><a href="{{ url_for('legal.about') }}" style="color: var(--primary); text-decoration: none;"><i class="fas fa-microchip"></i> Soberanía LVSL</a></p>
+        </div>
+    </footer>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        // Notificaciones Toast (Sistema Reemplazo de Alerts)
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    Toastify({
+                        text: "{{ message }}",
+                        duration: 3500,
+                        gravity: "top", // `top` or `bottom`
+                        position: "right", // `left`, `center` or `right`
+                        stopOnFocus: true,
+                        style: {
+                            background: "{{ 'linear-gradient(to right, #10b981, #059669)' if category == 'success' else ('linear-gradient(to right, #f59e0b, #d97706)' if category == 'warning' else 'linear-gradient(to right, #ef4444, #dc2626)') }}",
+                            borderRadius: '10px',
+                            fontWeight: '600',
+                            fontFamily: "'Quicksand', 'DejaVu Sans', sans-serif",
+                            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+                        }
+                    }).showToast();
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        // Lógica de navegación y scroll
+        const sidebar = document.getElementById('mainSidebar');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+        function toggleMenu() {
+            sidebar.classList.toggle('active');
+            sidebarBackdrop.classList.toggle('active');
+        }
+
+        // Delegar click al backdrop para cerrar
+        if(mobileMenuBtn) mobileMenuBtn.onclick = toggleMenu;
+        if(sidebarBackdrop) sidebarBackdrop.onclick = toggleMenu;
+        
+        // Cerrar sidebar al hacer click en un link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                sidebarBackdrop.classList.remove('active');
+            });
+        });
+             // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('sgi-theme') || 'light';
+        
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('sgi-theme', newTheme);
+
+                // Toastify notification
+                Toastify({
+                    text: `Tema ${newTheme === 'light' ? 'Claro' : 'Oscuro'} Activado`,
+                    duration: 2000,
+                    gravity: "top",
+                    position: "center",
+                    style: {
+                        background: newTheme === 'light' ? '#2563eb' : '#1e293b',
+                        color: '#fff',
+                        borderRadius: '10px'
+                    }
+                }).showToast();
+            });
+        }
+
+        // User Dropdown Logic
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        if (userMenuBtn && userDropdown) {
+            userMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

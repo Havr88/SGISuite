@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{% if view_mode == 'analytics' %}
+    <div class="header">
+        <h1><i class="fas fa-chart-line" style="color: var(--primary);"></i> SGI-Analytics | Rendimiento</h1>
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--border-color); color: var(--text-main);"><i class="fas fa-arrow-left"></i> Volver al Hub</a>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="form-grid" style="margin-bottom: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="card" style="margin-bottom: 0; padding: 1.15rem; text-align: center;">
+            <i class="fas fa-box" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
+            <h3 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Total de Artículos</h3>
+            <p style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); margin: 0;">{{ total_articles }}</p>
+        </div>
+        <!-- ... same cards as before ... -->
+        <div class="card" style="margin-bottom: 0; padding: 1.15rem; text-align: center;">
+            <i class="fas fa-tags" style="font-size: 1.8rem; color: var(--purple); margin-bottom: 8px;"></i>
+            <h3 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Categorías</h3>
+            <p style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); margin: 0;">{{ total_categories }}</p>
+        </div>
+        <div class="card" style="margin-bottom: 0; padding: 1.15rem; text-align: center;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 1.8rem; color: var(--danger); margin-bottom: 8px;"></i>
+            <h3 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Artículos en Stock Bajo</h3>
+            <p style="font-size: 1.6rem; font-weight: 700; color: var(--danger); margin: 0;">{{ low_stock_articles }}</p>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="form-grid charts-grid" style="margin-bottom: 2rem;">
+        <div class="card" style="margin-bottom: 0;">
+            <h3 style="color: var(--text-main); margin-bottom: 15px;"><i class="fas fa-chart-bar"></i> Entregas (Últimos 7 días)</h3>
+            <canvas id="barChart" height="100"></canvas>
+        </div>
+        <div class="card" style="margin-bottom: 0;">
+            <h3 style="color: var(--text-main); margin-bottom: 15px;"><i class="fas fa-chart-pie"></i> Distribución por Categoría</h3>
+            <canvas id="pieChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Critical Stock Alert (If any) -->
+    {% if critical_articles %}
+    <div class="card" style="border-left: 4px solid var(--danger);">
+        <h3 style="color: var(--danger); margin-bottom: 15px;"><i class="fas fa-bell"></i> Alerta de Stock Crítico</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Artículo</th>
+                        <th>Stock Actual</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in critical_articles %}
+                    <tr>
+                        <td><strong>{{ item.name }}</strong></td>
+                        <td style="color: var(--danger); font-weight: bold;">{{ item.current_stock }} {{ item.unit }}</td>
+                        <td>
+                            <span class="badge" style="background:var(--danger); color:white;">
+                                {% if item.current_stock == 0 %}Agotado{% else %}Bajo Mínimo{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Movements -->
+    <div class="card">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: var(--text-main);"><i class="fas fa-history"></i> Últimos Movimientos</h3>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Artículo</th>
+                        <th>Cantidad</th>
+                        <th>Destino</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in recent_movements %}
+                    <tr>
+                        <td>{{ m.date.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            {% if m.movement_type == 'IN' %}
+                            <span class="badge" style="background:var(--success); color:white;"><i class="fas fa-arrow-down"></i> Ingreso</span>
+                            {% else %}
+                            <span class="badge" style="background:var(--danger); color:white;"><i class="fas fa-arrow-up"></i> Entrega</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ m.article.name }}</td>
+                        <td><strong>{{ m.quantity }}</strong> {{ m.article.unit }}</td>
+                        <td>{{ m.department.name if m.department else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% else %}
+    <!-- DEFAULT HUB VIEW -->
+    <div class="header">
+        <div>
+            <h1 style="font-size: 2.2rem; margin-bottom: 5px;">Bienvenido a {{ (config.commercial_name or 'SGI Suite')|upper }}</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Selecciona el módulo al que deseas acceder.</p>
+        </div>
+    </div>
+    {% include '_module_hub.html' %}
+{% endif %}
+{% endblock %}
+
+{% if view_mode == 'analytics' %}
+<script>
+    // Inicializar Chart.js con la configuración global para soportar Dark Mode
+    Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    
+    // Gráfico de Barras
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ labels_bar|tojson|safe }},
+            datasets: [{
+                label: 'Artículos Entregados',
+                data: {{ data_bar|tojson|safe }},
+                backgroundColor: '#2563eb',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(100, 116, 139, 0.1)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Gráfico de Pastel
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ labels_pie|tojson|safe }},
+            datasets: [{
+                data: {{ data_pie|tojson|safe }},
+                backgroundColor: ['#2563eb', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endif %}

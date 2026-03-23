@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-arrow-up" style="color: #f97316;"></i> SGI-Stock | Entrega de Artículos</h1>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;"><i class="fas fa-file-export"></i> Registrar Salida / Despacho</h3>
+        <button type="button" class="btn" onclick="openDepModal()" style="background: var(--secondary); padding: 8px 15px; font-size: 0.9rem;">
+            <i class="fas fa-plus"></i> Nuevo Destino
+        </button>
+    </div>
+
+    <form method="POST" action="{{ url_for('stock.inventory_out') }}">
+        <div class="form-group">
+            <label>Filtrar y Seleccionar Artículo</label>
+            <input type="text" id="articleSearch" placeholder="Escriba para filtrar artículos con stock..." 
+                   style="width: 100%; padding: 10px 15px; border-radius: 12px 12px 0 0; border: 1px solid var(--border-color); background: var(--bg-color);">
+            <select name="article_id" id="articleSelect" required 
+                    style="width:100%; padding:12px; border:1px solid var(--border-color); border-top:none; border-radius: 0 0 12px 12px; background: var(--surface); color: var(--text-main); size: 5;">
+                <option value="">-- Seleccione un artículo --</option>
+                {% for a in articles %}
+                <option value="{{ a.id }}">
+                    {{ a.name }} - Disponible: {{ "%.2f"|format(a.current_stock) }} {{ a.base_unit.abbreviation }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="form-group">
+                <label>Cantidad a Entregar</label>
+                <input type="number" step="0.001" name="quantity" min="0.001" required placeholder="Ej. 10">
+            </div>
+            <div class="form-group">
+                <label>Departamento Destino</label>
+                <input type="text" id="depSearch" placeholder="Filtrar destino..." 
+                       style="width: 100%; padding: 8px; border-radius: 8px 8px 0 0; border: 1px solid var(--border-color); font-size: 0.9rem;">
+                <select name="department_id" id="depSelect" required 
+                        style="width:100%; padding:10px; border:1px solid var(--border-color); border-top:none; border-radius: 0 0 8px 8px; background: var(--surface); color: var(--text-main);">
+                    <option value="">-- Seleccione destino --</option>
+                    {% for d in departments %}
+                    <option value="{{ d.id }}">{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+            <div class="form-group">
+                <label>Nombre del Receptor</label>
+                <input type="text" name="receiver_name" placeholder="Ej. Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Cédula/ID</label>
+                <input type="text" name="receiver_cedula" placeholder="Ej. 20.123.456">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Motivo o Nota Adicional</label>
+            <textarea name="observations" placeholder="Ej. Entrega mensual, Emergencia..." style="width:100%; border:1px solid var(--border-color); border-radius:12px; padding:12px; height:80px; background: var(--surface); color: var(--text-main);"></textarea>
+        </div>
+        
+        <button type="submit" class="btn" style="width:100%; font-size:1.1rem; padding:15px; background: var(--primary); color:white; font-weight:700;">
+            <i class="fas fa-check-circle"></i> Procesar Entrega SGI
+        </button>
+    </form>
+</div>
+
+<!-- Modal para Nuevo Departamento Rápido -->
+<div id="depModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+    <div class="card" style="width:90%; max-width:500px; position:relative; animation: slideUp 0.3s ease;">
+        <button onclick="closeDepModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem;">&times;</button>
+        <h3 style="margin-bottom:20px;"><i class="fas fa-building"></i> Nuevo Departamento / Destino</h3>
+        
+        <form action="{{ url_for('stock.departments') }}" method="POST">
+            <input type="hidden" name="next" value="{{ url_for('stock.inventory_out') }}">
+            
+            <div class="form-group">
+                <label>Nombre del Departamento</label>
+                <input type="text" name="name" required placeholder="Ej. Laboratorio de Bioanálisis">
+            </div>
+            <div class="form-group">
+                <label>Responsable</label>
+                <input type="text" name="manager_name" placeholder="Ej. Dr. Armando Guerra">
+            </div>
+
+            <button type="submit" class="btn" style="width:100%; background:var(--secondary); margin-top:10px;">
+                Guardar y Continuar Despacho
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+#articleSelect option, #depSelect option { padding: 10px; }
+</style>
+
+<script>
+function openDepModal() { document.getElementById('depModal').style.display = 'flex'; }
+function closeDepModal() { document.getElementById('depModal').style.display = 'none'; }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const articleSelect = document.getElementById('articleSelect');
+    const articleSearch = document.getElementById('articleSearch');
+    const depSelect = document.getElementById('depSelect');
+    const depSearch = document.getElementById('depSearch');
+
+    const originalArticles = Array.from(articleSelect.options);
+    const originalDeps = Array.from(depSelect.options);
+
+    articleSearch.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        articleSelect.innerHTML = '';
+        originalArticles.filter(o => o.text.toLowerCase().includes(term) || o.value === "")
+                       .forEach(o => articleSelect.add(o));
+        if (term !== "" && articleSelect.options.length > 1) articleSelect.selectedIndex = 1;
+    });
+
+    depSearch.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        depSelect.innerHTML = '';
+        originalDeps.filter(o => o.text.toLowerCase().includes(term) || o.value === "")
+                    .forEach(o => depSelect.add(o));
+        if (term !== "" && depSelect.options.length > 1) depSelect.selectedIndex = 1;
+    });
+});
+</script>
+{% endblock %}

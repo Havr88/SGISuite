@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-arrow-down" style="color: #10b981;"></i> SGI-Stock | Ingreso de Mercancía</h1>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;"><i class="fas fa-truck-loading"></i> Registrar Entrada de Artículos</h3>
+        <button type="button" class="btn" onclick="openModal()" style="background: var(--secondary); padding: 8px 15px; font-size: 0.9rem;">
+            <i class="fas fa-plus"></i> Nuevo Artículo
+        </button>
+    </div>
+
+    <form method="POST" action="{{ url_for('stock.inventory_in') }}">
+        <div class="form-group">
+            <label>Buscar / Seleccionar Artículo</label>
+            <div style="position: relative; margin-bottom: 10px;">
+                <input type="text" id="articleSearch" placeholder="Escriba para filtrar artículos..." 
+                       style="width: 100%; padding: 10px 15px; border-radius: 12px 12px 0 0; border: 1px solid var(--border-color); background: var(--bg-color);">
+                <select name="article_id" id="articleSelect" required 
+                        style="width:100%; padding:12px; border:1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; background: var(--surface); color: var(--text-main); size: 5;">
+                    <option value="" data-factor="1">-- Seleccione un artículo --</option>
+                    {% for a in articles %}
+                    <option value="{{ a.id }}" 
+                            data-factor="{{ a.conversion_factor or 1 }}"
+                            data-base-abbr="{{ a.base_unit.abbreviation }}"
+                            data-base-id="{{ a.base_unit_id }}"
+                            data-purchase-id="{{ a.purchase_unit_id or a.base_unit_id }}"
+                            data-purchase-abbr="{{ a.purchase_unit.abbreviation if a.purchase_unit else a.base_unit.abbreviation }}">
+                        {{ a.name }} ({{ a.category.name }})
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if not articles %}
+                <div style="padding: 10px; color: var(--warning); font-size: 0.9rem;">
+                    <i class="fas fa-exclamation-triangle"></i> No hay artículos registrados. Use el botón superior para crear uno.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:15px;">
+            <div class="form-group">
+                <label>Cantidad a Ingresar</label>
+                <input type="number" step="0.001" name="quantity" id="quantityInput" min="0.001" required placeholder="Ej. 10">
+            </div>
+            <div class="form-group">
+                <label>Unidad de Registro</label>
+                <select name="unit_id" id="unitSelect" required style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:12px; background: var(--surface); color: var(--text-main);">
+                    <option value="">Seleccione artículo primero</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="conversionPreview" style="display:none; padding:1rem; background: var(--primary-light); border-radius:12px; margin-bottom:1.5rem; border: 1px solid var(--primary);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:600; color:var(--primary);"><i class="fas fa-bolt"></i> Explosión de Stock Automática:</span>
+                <span id="previewText" style="font-weight:800; font-size:1.2rem; color:var(--primary);">0.00</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Observaciones de Carga</label>
+            <textarea name="observations" placeholder="Ej. Factura #1234, Donación de..." style="width:100%; border:1px solid var(--border-color); border-radius:12px; padding:12px; height:80px; background: var(--surface); color: var(--text-main);"></textarea>
+        </div>
+        
+        <button type="submit" class="btn" style="width:100%; font-size:1.1rem; padding:15px; background: var(--primary); color:white; border-radius:12px; font-weight:700;">
+            <i class="fas fa-check-circle"></i> Procesar Ingreso Técnico
+        </button>
+    </form>
+</div>
+
+<!-- Modal para Nuevo Artículo Rápido -->
+<div id="articleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+    <div class="card" style="width:90%; max-width:500px; position:relative; animation: slideUp 0.3s ease;">
+        <button onclick="closeModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem;">&times;</button>
+        <h3 style="margin-bottom:20px;"><i class="fas fa-plus-circle"></i> Nuevo Artículo Rápido</h3>
+        
+        <form action="{{ url_for('stock.add_article') }}" method="POST">
+            <input type="hidden" name="next" value="{{ url_for('stock.inventory_in') }}">
+            
+            <div class="form-group">
+                <label>Nombre del Artículo</label>
+                <input type="text" name="name" required placeholder="Ej. Guantes de Nitrilo L">
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select name="category_id" required style="width:100%; padding:10px; border-radius:10px; background:var(--bg-color); color:var(--text-main); border:1px solid var(--border-color);">
+                        {% for c in categories %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Unidad Base</label>
+                    <select name="base_unit_id" required style="width:100%; padding:10px; border-radius:10px; background:var(--bg-color); color:var(--text-main); border:1px solid var(--border-color);">
+                        {% for u in units %}
+                        <option value="{{ u.id }}">{{ u.name }} ({{ u.abbreviation }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" style="width:100%; background:var(--secondary); margin-top:10px;">
+                Guardar y Continuar Ingreso
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+#articleSelect option { padding: 10px; }
+#articleSelect option:checked { background: var(--primary-light); color: var(--primary); }
+</style>
+
+<script>
+function openModal() { document.getElementById('articleModal').style.display = 'flex'; }
+function closeModal() { document.getElementById('articleModal').style.display = 'none'; }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const articleSelect = document.getElementById('articleSelect');
+    const articleSearch = document.getElementById('articleSearch');
+    const unitSelect = document.getElementById('unitSelect');
+    const quantityInput = document.getElementById('quantityInput');
+    const previewDiv = document.getElementById('conversionPreview');
+    const previewText = document.getElementById('previewText');
+
+    // Inicializar opciones originales para filtrar
+    const originalOptions = Array.from(articleSelect.options);
+
+    articleSearch.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        articleSelect.innerHTML = '';
+        
+        const filtered = originalOptions.filter(opt => 
+            opt.text.toLowerCase().includes(term) || opt.value === ""
+        );
+        
+        filtered.forEach(opt => articleSelect.add(opt));
+        
+        if (filtered.length > 1 && term !== "") {
+            articleSelect.selectedIndex = 1; // Auto-seleccionar primer resultado
+            updateUnits();
+        }
+    });
+
+    function updateUnits() {
+        const selected = articleSelect.options[articleSelect.selectedIndex];
+        if (!selected || !selected.value) {
+            unitSelect.innerHTML = '<option value="">Seleccione artículo primero</option>';
+            previewDiv.style.display = 'none';
+            return;
+        }
+
+        const baseId = selected.dataset.baseId;
+        const baseAbbr = selected.dataset.baseAbbr;
+        const purchaseId = selected.dataset.purchaseId;
+        const purchaseAbbr = selected.dataset.purchaseAbbr;
+
+        let options = `<option value="${baseId}">${baseAbbr} (Unidad Base)</option>`;
+        if (purchaseId && purchaseId !== baseId) {
+            options += `<option value="${purchaseId}">${purchaseAbbr} (Paquete/Bulto)</option>`;
+        }
+        unitSelect.innerHTML = options;
+        updatePreview();
+    }
+
+    function updatePreview() {
+        const selected = articleSelect.options[articleSelect.selectedIndex];
+        if (!selected || !selected.value || !quantityInput.value) {
+            previewDiv.style.display = 'none';
+            return;
+        }
+
+        const factor = parseFloat(selected.dataset.factor);
+        const baseAbbr = selected.dataset.baseAbbr;
+        const baseId = selected.dataset.baseId;
+        const currentUnitId = unitSelect.value;
+        const quantity = parseFloat(quantityInput.value);
+
+        if (currentUnitId !== baseId && factor > 1) {
+            const result = quantity * factor;
+            previewText.innerText = `${result.toFixed(2)} ${baseAbbr}`;
+            previewDiv.style.display = 'block';
+        } else {
+            previewDiv.style.display = 'none';
+        }
+    }
+
+    articleSelect.addEventListener('change', updateUnits);
+    unitSelect.addEventListener('change', updatePreview);
+    quantityInput.addEventListener('input', updatePreview);
+});
+</script>
+{% endblock %}

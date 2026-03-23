@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="fas fa-boxes" style="color: var(--primary);"></i> SGI-Stock | Inventario General</h1>
+    <button onclick="document.getElementById('addModal').style.display='block'" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nuevo Artículo
+    </button>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre / Descripción</th>
+                    <th>Categoría</th>
+                    <th>Ubicación</th>
+                    <th>Stock Actual</th>
+                    <th>Configuración Unidades</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in articles %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 700;">{{ a.name }}</div>
+                        <div style="font-size: 0.8rem; color: #64748b;">{{ a.observations or 'Sin observaciones' }}</div>
+                    </td>
+                    <td>{{ a.category.name }}</td>
+                    <td>{{ a.location or 'N/A' }}</td>
+                    <td>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: {% if a.current_stock <= a.min_stock %}#ef4444{% else %}#10b981{% endif %};">
+                            {{ "%.2f"|format(a.current_stock) }} <span style="font-size: 0.7rem; font-weight: 400; color: #64748b;">{{ a.base_unit.abbreviation }}</span>
+                        </div>
+                        <div style="font-size: 0.65rem;">Min: {{ "%.1f"|format(a.min_stock) }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem;">
+                            <i class="fas fa-shopping-cart" title="Compra"></i> {{ a.purchase_unit.name if a.purchase_unit else 'N/A' }}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            1 {{ a.purchase_unit.abbreviation if a.purchase_unit else '?' }} = {{ a.conversion_factor }} {{ a.base_unit.abbreviation }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: {% if a.current_stock <= a.min_stock %}#fee2e2; color: #ef4444{% else %}#ecfdf5; color: #10b981{% endif %};">
+                            {% if a.current_stock <= a.min_stock %}STOCK BAJO{% else %}NORMAL{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem;">No hay artículos registrados en SGI-Stock.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para agregar artículo -->
+<div id="addModal" style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+    <div class="card" style="width:600px; margin: 50px auto; padding:2rem; max-height: 90vh; overflow-y: auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="margin:0;">Agregar a SGI-Stock</h2>
+            <button onclick="document.getElementById('addModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('stock.add_article') }}">
+            <div class="form-group">
+                <label>Nombre del Artículo</label>
+                <input type="text" name="name" required placeholder="Ej. Cable UTP Cat6">
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <div style="display:flex; gap:5px;">
+                        <div style="flex-grow:1;">
+                            <input type="text" id="catSearch" placeholder="Filtrar..." style="padding:5px; border-radius:5px 5px 0 0; width:100%; border:1px solid var(--border-color); font-size:0.8rem;">
+                            <select name="category_id" id="catSelect" required style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-top:none; border-radius:0 0 10px 10px; background: var(--surface); color: var(--text-main);">
+                                {% for c in categories %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="button" onclick="document.getElementById('catModal').style.display='flex'" class="btn" style="padding:0 10px; background:var(--secondary); height:38px; margin-top:24px;"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" name="location" placeholder="Pasillo A, Estante 4">
+                </div>
+            </div>
+
+            <div style="padding: 1.5rem; background: var(--bg-color); border-radius: 15px; margin: 1.5rem 0; border: 1px dashed var(--primary);">
+                <h4 style="margin-top: 0; color: var(--primary);"><i class="fas fa-cog"></i> Configuración de Unidades Técnicas</h4>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 10px;">
+                    <div class="form-group">
+                        <label>Unidad Base (Stock)</label>
+                        <div style="display:flex; gap:5px;">
+                            <div style="flex-grow:1;">
+                                <input type="text" class="unit-search" data-target="baseUnitSelect" placeholder="Filtrar..." style="padding:5px; border-radius:5px 5px 0 0; width:100%; border:1px solid var(--border-color); font-size:0.8rem;">
+                                <select name="base_unit_id" id="baseUnitSelect" required style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-top:none; border-radius:0 0 10px 10px; background: var(--surface); color: var(--text-main);">
+                                    {% for u in units %}
+                                    <option value="{{ u.id }}">{{ u.name }} ({{ u.abbreviation }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="button" onclick="document.getElementById('unitModal').style.display='flex'" class="btn" style="padding:0 10px; background:var(--secondary); height:38px; margin-top:24px;"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Unidad de Compra</label>
+                        <div style="display:flex; gap:5px;">
+                            <div style="flex-grow:1;">
+                                <input type="text" class="unit-search" data-target="purchaseUnitSelect" placeholder="Filtrar..." style="padding:5px; border-radius:5px 5px 0 0; width:100%; border:1px solid var(--border-color); font-size:0.8rem;">
+                                <select name="purchase_unit_id" id="purchaseUnitSelect" style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-top:none; border-radius:0 0 10px 10px; background: var(--surface); color: var(--text-main);">
+                                    <option value="">(Misma que base)</option>
+                                    {% for u in units %}
+                                    <option value="{{ u.id }}">{{ u.name }} ({{ u.abbreviation }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Factor de Conversión (Explosión)</label>
+                    <input type="number" step="0.001" name="conversion_factor" value="1.0">
+                    <small style="color: var(--text-muted);">¿Cuántas unidades base hay en 1 unidad de compra? (Ej. 1 Caja = 12 Unidades)</small>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>Stock Mínimo de Alerta</label>
+                    <input type="number" step="0.1" name="min_stock" value="10.0">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Observaciones Técnicas</label>
+                <textarea name="observations" rows="3" style="width:100%; border:1px solid var(--border-color); border-radius:10px; padding:0.55rem; background: var(--surface); color: var(--text-main);"></textarea>
+            </div>
+            
+            <button type="submit" class="btn" style="width:100%; padding:1rem; background: var(--primary); color: white; font-weight: 700; border-radius: 12px; margin-top: 10px;">
+                <i class="fas fa-save"></i> Registrar en SGI-Stock
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Secundario: Nueva Categoría -->
+<div id="catModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
+    <div class="card" style="width:400px; position:relative;">
+        <h3>Nueva Categoría Rápida</h3>
+        <form action="{{ url_for('stock.categories') }}" method="POST">
+            <input type="hidden" name="next" value="{{ url_for('stock.articles', openAddModal=1) }}">
+            <div class="form-group"><label>Nombre</label><input type="text" name="name" required></div>
+            <button type="submit" class="btn" style="width:100%; background:var(--secondary);">Guardar Categoría</button>
+            <button type="button" onclick="document.getElementById('catModal').style.display='none'" class="btn" style="width:100%; margin-top:10px; background:#e2e8f0; color:#475569;">Cerrar</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Secundario: Nueva Unidad -->
+<div id="unitModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
+    <div class="card" style="width:400px; position:relative;">
+        <h3>Nueva Unidad Rápida</h3>
+        <form action="{{ url_for('stock.add_unit') }}" method="POST">
+            <input type="hidden" name="next" value="{{ url_for('stock.articles', openAddModal=1) }}">
+            <div class="form-group"><label>Nombre (Ej. Tambor)</label><input type="text" name="name" required></div>
+            <div class="form-group"><label>Abreviación (Ej. Tbr)</label><input type="text" name="abbreviation" required></div>
+            <div class="form-group">
+                <label>Magnitud técnica</label>
+                <select name="category" required style="width:100%; padding:10px; border-radius:10px;">
+                    <option value="Conteo">Conteo (Und, Pza)</option>
+                    <option value="Masa">Masa (Kg, Gr)</option>
+                    <option value="Volumen">Volumen (L, Gal)</option>
+                    <option value="Empaque">Empaque (Cj, Blt)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" style="width:100%; background:var(--secondary);">Guardar Unidad</button>
+            <button type="button" onclick="document.getElementById('unitModal').style.display='none'" class="btn" style="width:100%; margin-top:10px; background:#e2e8f0; color:#475569;">Cerrar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-abrir modal si viene de un quick-add
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('openAddModal')) {
+        document.getElementById('addModal').style.display = 'block';
+    }
+
+    // Función genérica de filtrado para selectors
+    function setupFilter(searchId, selectId) {
+        const searchInput = document.getElementById(searchId);
+        const select = document.getElementById(selectId);
+        if(!searchInput || !select) return;
+        
+        const originalOptions = Array.from(select.options);
+        
+        searchInput.addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            select.innerHTML = '';
+            originalOptions.filter(o => o.text.toLowerCase().includes(term) || o.value === "")
+                           .forEach(o => select.add(o));
+            if(term !== "" && select.options.length > 1) select.selectedIndex = 1;
+        });
+    }
+
+    setupFilter('catSearch', 'catSelect');
+    
+    // Filtros de unidades (clase dinámica)
+    document.querySelectorAll('.unit-search').forEach(input => {
+        const targetId = input.dataset.target;
+        const select = document.getElementById(targetId);
+        const originalOptions = Array.from(select.options);
+        
+        input.addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            select.innerHTML = '';
+            originalOptions.filter(o => o.text.toLowerCase().includes(term) || o.value === "")
+                           .forEach(o => select.add(o));
+        });
+    });
+});
+</script>
+{% endblock %}
