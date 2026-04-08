@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.models import Article, InstitutionConfig
+from app.models import Article, InstitutionConfig, Unit
 
 api = Blueprint('api', __name__, url_prefix='/api/v1')
 
@@ -25,7 +25,7 @@ def get_stock():
             "name": a.name,
             "category": a.category.name if a.category else None,
             "current_stock": a.current_stock,
-            "unit": a.unit,
+            "unit": a.base_unit.abbreviation if a.base_unit else None,
             "min_stock": a.min_stock,
             "location": a.location,
             "status": "CRITICAL" if a.current_stock <= a.min_stock else "NORMAL"
@@ -47,7 +47,7 @@ def get_article_details(article_id):
         "name": article.name,
         "category": article.category.name if article.category else None,
         "current_stock": article.current_stock,
-        "unit": article.unit,
+        "unit": article.base_unit.abbreviation if article.base_unit else None,
         "min_stock": article.min_stock,
         "location": article.location,
         "observations": article.observations

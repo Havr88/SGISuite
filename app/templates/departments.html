@@ -2,13 +2,14 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-building" style="color: var(--primary);"></i> SGI-Stock | Departamentos</h1>
+    <h1><i class="ti ti-building" style="color: var(--primary);"></i> SGI-Stock | Departamentos</h1>
 </div>
 
 <div class="form-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
     <div class="card" style="margin-bottom: 0;">
         <h3 style="margin-bottom: 15px;">Nuevo Departamento/Sede</h3>
-        <form method="POST" action="{{ url_for('stock.departments') }}">
+        <form method="POST" action="{{ url_for('stock.departments') }}" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Nombre del Departamento</label>
                 <input type="text" name="name" required placeholder="Ej. Administración, Almacén Central...">
@@ -44,7 +45,7 @@
                     <input type="date" name="manager_date_to">
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Guardar Departamento</button>
+            <button type="submit" class="btn btn-primary" style="width:100%"><i class="ti ti-device-floppy"></i> Guardar Departamento</button>
         </form>
     </div>
 
@@ -85,11 +86,12 @@
                         <td>
                             <div style="display: flex; gap: 8px;">
                                 <button onclick="openEditModal('{{ d.id }}', '{{ d.name }}', '{{ d.description or '' }}', '{{ d.manager_name or '' }}', '{{ d.manager_role or '' }}', '{{ d.manager_date_from or '' }}', '{{ d.manager_date_to or '' }}')" class="btn" style="padding: 5px 10px; background: var(--bg-color); color: var(--text-main);">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="ti ti-pencil"></i>
                                 </button>
                                 <form method="POST" action="{{ url_for('stock.delete_department', id=d.id) }}" onsubmit="return confirm('¿Eliminar departamento?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn" style="padding: 5px 10px; background: #fee2e2; color: #ef4444;">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="ti ti-trash"></i>
                                     </button>
                                 </form>
                             </div>
@@ -111,6 +113,7 @@
     <div class="card" style="width:500px; margin: 50px auto; padding:2rem; max-height: 90vh; overflow-y: auto;">
         <h3>Editar Departamento / Sede</h3>
         <form id="editForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Nombre</label>
                 <input type="text" name="name" id="edit_name" required>

@@ -2,18 +2,19 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-arrow-down" style="color: #10b981;"></i> SGI-Stock | Ingreso de Mercancía</h1>
+    <h1><i class="ti ti-arrow-down" style="color: #10b981;"></i> SGI-Stock | Ingreso de Mercancía</h1>
 </div>
 
 <div class="card" style="max-width: 800px; margin: 0 auto;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0;"><i class="fas fa-truck-loading"></i> Registrar Entrada de Artículos</h3>
+        <h3 style="margin: 0;"><i class="ti ti-truck-loading"></i> Registrar Entrada de Artículos</h3>
         <button type="button" class="btn" onclick="openModal()" style="background: var(--secondary); padding: 8px 15px; font-size: 0.9rem;">
-            <i class="fas fa-plus"></i> Nuevo Artículo
+            <i class="ti ti-plus"></i> Nuevo Artículo
         </button>
     </div>
 
-    <form method="POST" action="{{ url_for('stock.inventory_in') }}">
+    <form method="POST" action="{{ url_for('stock.inventory_in') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label>Buscar / Seleccionar Artículo</label>
             <div style="position: relative; margin-bottom: 10px;">
@@ -35,28 +36,39 @@
                 </select>
                 {% if not articles %}
                 <div style="padding: 10px; color: var(--warning); font-size: 0.9rem;">
-                    <i class="fas fa-exclamation-triangle"></i> No hay artículos registrados. Use el botón superior para crear uno.
+                    <i class="ti ti-alert-triangle"></i> No hay artículos registrados. Use el botón superior para crear uno.
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:15px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:15px;">
             <div class="form-group">
-                <label>Cantidad a Ingresar</label>
+                <label>V. Unitario (Costo)</label>
+                <input type="number" step="0.01" name="unit_cost" id="costInput" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
                 <input type="number" step="0.001" name="quantity" id="quantityInput" min="0.001" required placeholder="Ej. 10">
             </div>
             <div class="form-group">
-                <label>Unidad de Registro</label>
+                <label>Unidad</label>
                 <select name="unit_id" id="unitSelect" required style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:12px; background: var(--surface); color: var(--text-main);">
-                    <option value="">Seleccione artículo primero</option>
+                    <option value="">Seleccione artículo</option>
                 </select>
             </div>
         </div>
 
+        <div class="form-group">
+            <label><i class="ti ti-paperclip"></i> Comprobante / Soporte (Opcional)</label>
+            <input type="file" name="document" accept=".pdf,.png,.jpg,.jpeg" 
+                   style="width: 100%; padding: 10px; border: 2px dashed var(--border-color); border-radius: 12px; background: var(--bg-color); cursor: pointer;">
+            <small style="color: var(--text-muted);">Adjuntar factura, oficio de donación o captura (.pdf, .jpg, .png)</small>
+        </div>
+
         <div id="conversionPreview" style="display:none; padding:1rem; background: var(--primary-light); border-radius:12px; margin-bottom:1.5rem; border: 1px solid var(--primary);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:600; color:var(--primary);"><i class="fas fa-bolt"></i> Explosión de Stock Automática:</span>
+                <span style="font-weight:600; color:var(--primary);"><i class="ti ti-bolt"></i> Explosión de Stock Automática:</span>
                 <span id="previewText" style="font-weight:800; font-size:1.2rem; color:var(--primary);">0.00</span>
             </div>
         </div>
@@ -67,7 +79,7 @@
         </div>
         
         <button type="submit" class="btn" style="width:100%; font-size:1.1rem; padding:15px; background: var(--primary); color:white; border-radius:12px; font-weight:700;">
-            <i class="fas fa-check-circle"></i> Procesar Ingreso Técnico
+            <i class="ti ti-circle-check"></i> Procesar Ingreso Técnico
         </button>
     </form>
 </div>
@@ -76,9 +88,10 @@
 <div id="articleModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
     <div class="card" style="width:90%; max-width:500px; position:relative; animation: slideUp 0.3s ease;">
         <button onclick="closeModal()" style="position:absolute; top:20px; right:20px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem;">&times;</button>
-        <h3 style="margin-bottom:20px;"><i class="fas fa-plus-circle"></i> Nuevo Artículo Rápido</h3>
+        <h3 style="margin-bottom:20px;"><i class="ti ti-plus-circle"></i> Nuevo Artículo Rápido</h3>
         
-        <form action="{{ url_for('stock.add_article') }}" method="POST">
+        <form action="{{ url_for('stock.add_article') }}" method="POST" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="next" value="{{ url_for('stock.inventory_in') }}">
             
             <div class="form-group">
@@ -103,6 +116,11 @@
                         {% endfor %}
                     </select>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label>Costo Unitario (Unidad Base)</label>
+                <input type="number" step="0.01" name="unit_cost" value="0.00">
             </div>
 
             <button type="submit" class="btn" style="width:100%; background:var(--secondary); margin-top:10px;">

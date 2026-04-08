@@ -2,9 +2,9 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-users-cog" style="color: var(--primary);"></i> SGI-Core | Gestión de Usuarios</h1>
+    <h1><i class="ti ti-users-group" style="color: var(--primary);"></i> SGI-Core | Gestión de Usuarios</h1>
     <button onclick="document.getElementById('addUserModal').style.display='block'" class="btn btn-primary">
-        <i class="fas fa-user-plus"></i> Nuevo Usuario
+        <i class="ti ti-user-plus"></i> Nuevo Usuario
     </button>
 </div>
 
@@ -37,12 +37,13 @@
                     <td>
                         <div style="display: flex; gap: 8px;">
                             <button onclick="openEditModal('{{ u.id }}', '{{ u.username }}', '{{ u.full_name or '' }}', '{{ u.email or '' }}', '{{ u.phone or '' }}', '{{ u.role }}')" class="btn" style="padding: 6px 12px; background: var(--bg-color); color: var(--text-main); font-size: 0.8rem;">
-                                <i class="fas fa-edit"></i>
+                                <i class="ti ti-pencil"></i>
                             </button>
                             {% if u.id != current_user.id %}
                             <form method="POST" action="{{ url_for('admin.delete_user', user_id=u.id) }}" onsubmit="return confirm('¿Está seguro de eliminar a este usuario? Esta acción no se puede deshacer.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn" style="padding: 6px 12px; background: #fee2e2; color: #ef4444; font-size: 0.8rem;">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="ti ti-trash"></i>
                                 </button>
                             </form>
                             {% endif %}
@@ -53,6 +54,35 @@
             </tbody>
         </table>
     </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding: 1rem; border-top: 1px solid var(--border-color);">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+            Mostrando página <strong>{{ pagination.page }}</strong> de <strong>{{ pagination.pages }}</strong> 
+            ({{ pagination.total }} usuarios totales)
+        </div>
+        <div style="display:flex; gap: 5px; flex-wrap: wrap;">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.list_users', page=pagination.prev_num) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">&laquo;</a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <span class="btn" style="background:var(--primary); border:1px solid var(--primary); color:white; padding: 5px 10px;">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('admin.list_users', page=page_num) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span style="padding: 5px 10px; color:var(--text-muted);">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('admin.list_users', page=pagination.next_num) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">&raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Modal para agregar usuario -->
@@ -63,6 +93,7 @@
             <button onclick="document.getElementById('addUserModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
         <form method="POST" action="{{ url_for('admin.add_user') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                 <div class="form-group">
                     <label>Usuario (Login)</label>
@@ -93,7 +124,7 @@
             </div>
             
             <button type="submit" class="btn btn-primary" style="width:100%; padding:1rem; margin-top: 1rem;">
-                <i class="fas fa-save"></i> Crear Cuenta de Usuario
+                <i class="ti ti-device-floppy"></i> Crear Cuenta de Usuario
             </button>
         </form>
     </div>
@@ -107,6 +138,7 @@
             <button onclick="document.getElementById('editUserModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
         <form id="editUserForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Nombre Completo</label>
                 <input type="text" name="full_name" id="edit_full_name" required>
@@ -137,7 +169,7 @@
             </div>
             
             <button type="submit" class="btn btn-primary" style="width:100%; padding:1rem; margin-top: 1rem;">
-                <i class="fas fa-sync"></i> Guardar Cambios
+                <i class="ti ti-refresh"></i> Guardar Cambios
             </button>
         </form>
     </div>

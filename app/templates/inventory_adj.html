@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="ti ti-adjustments-horizontal" style="color: var(--secondary);"></i> SGI-Stock | Ajuste de Saldo</h1>
+</div>
+
+<div class="card" style="max-width: 700px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <h3 style="margin: 0;"><i class="ti ti-replace"></i> Corrección Manual de Existencias</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">
+            Esta herramienta permite sincronizar el stock del sistema con el físico. 
+            <strong>Todo ajuste queda registrado en la auditoría como tipo 'ADJ'.</strong>
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('stock.inventory_adj') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+            <label>Seleccionar Artículo para Ajustar</label>
+            <div style="position: relative; margin-bottom: 10px;">
+                <input type="text" id="articleSearch" placeholder="Filtro rápido..." 
+                       style="width: 100%; padding: 10px 15px; border-radius: 12px 12px 0 0; border: 1px solid var(--border-color); background: var(--bg-color);">
+                <select name="article_id" id="articleSelect" required 
+                        style="width:100%; padding:12px; border:1px solid var(--border-color); border-top: none; border-radius: 0 0 12px 12px; background: var(--surface); color: var(--text-main); size: 5;">
+                    <option value="">-- Seleccione un artículo --</option>
+                    {% for a in articles %}
+                    <option value="{{ a.id }}" data-current="{{ a.current_stock }}" data-unit="{{ a.base_unit.abbreviation }}">
+                        {{ a.name }} (Stock Actual: {{ "%.2f"|format(a.current_stock) }} {{ a.base_unit.abbreviation }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="adjDetails" style="display:none; background: var(--bg-color); padding: 20px; border-radius: 12px; border: 1px dashed var(--border-color); margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label>Existencia Actual</label>
+                    <input type="text" id="currentStockDisplay" disabled style="background: var(--surface); font-weight: bold;">
+                </div>
+                <div class="form-group">
+                    <label>Nueva Existencia Real</label>
+                    <input type="number" step="0.001" name="new_quantity" id="newQuantityInput" required placeholder="0.00">
+                </div>
+            </div>
+            
+            <div id="diffIndicator" style="margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-weight: 600; display: none;">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label><i class="ti ti-paperclip"></i> Justificativo del Ajuste (Opcional)</label>
+            <input type="file" name="document" accept=".pdf,.png,.jpg,.jpeg" 
+                   style="width: 100%; padding: 10px; border: 2px dashed var(--border-color); border-radius: 12px; background: var(--bg-color); cursor: pointer;">
+            <small style="color: var(--text-muted);">Adjuntar acta de inventario, foto de auditoría o resolución (.pdf, .jpg, .png)</small>
+        </div>
+
+        <div class="form-group">
+            <label>Motivo del Ajuste (Obligatorio para auditoría)</label>
+            <textarea name="observations" rows="3" required placeholder="Explique por qué se está ajustando el stock (ej. 'Sobras detectadas en auditoría semestral', 'Corrección por merma no registrada', etc.)" style="width:100%; border:1px solid var(--border-color); border-radius:12px; padding:12px; background: var(--surface); color: var(--text-main); font-family: inherit; font-size: 0.95rem;"></textarea>
+        </div>
+        
+        <button type="submit" class="btn" style="width:100%; font-size:1.1rem; padding:15px; background: var(--secondary); color:white; border-radius:12px; font-weight:700;">
+            <i class="ti ti-check"></i> Confirmar Ajuste de Stock
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const articleSelect = document.getElementById('articleSelect');
+    const articleSearch = document.getElementById('articleSearch');
+    const adjDetails = document.getElementById('adjDetails');
+    const currentStockDisplay = document.getElementById('currentStockDisplay');
+    const newQuantityInput = document.getElementById('newQuantityInput');
+    const diffIndicator = document.getElementById('diffIndicator');
+
+    const originalOptions = Array.from(articleSelect.options);
+
+    articleSearch.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        articleSelect.innerHTML = '';
+        const filtered = originalOptions.filter(opt => 
+            opt.text.toLowerCase().includes(term) || opt.value === ""
+        );
+        filtered.forEach(opt => articleSelect.add(opt));
+        if (filtered.length > 1 && term !== "") {
+            articleSelect.selectedIndex = 1;
+            updateDetails();
+        }
+    });
+
+    function updateDetails() {
+        const selected = articleSelect.options[articleSelect.selectedIndex];
+        if (!selected || !selected.value) {
+            adjDetails.style.display = 'none';
+            return;
+        }
+
+        const current = parseFloat(selected.dataset.current);
+        const unit = selected.dataset.unit;
+        
+        currentStockDisplay.value = `${current.toFixed(2)} ${unit}`;
+        newQuantityInput.value = current;
+        adjDetails.style.display = 'block';
+        updateDiff();
+    }
+
+    function updateDiff() {
+        const selected = articleSelect.options[articleSelect.selectedIndex];
+        if (!selected || !selected.value || newQuantityInput.value === "") {
+            diffIndicator.style.display = 'none';
+            return;
+        }
+
+        const current = parseFloat(selected.dataset.current);
+        const nuevo = parseFloat(newQuantityInput.value);
+        const unit = selected.dataset.unit;
+        const diff = nuevo - current;
+
+        diffIndicator.style.display = 'block';
+        if (diff > 0) {
+            diffIndicator.style.background = '#dcfce7';
+            diffIndicator.style.color = '#166534';
+            diffIndicator.innerText = `Incremento: +${diff.toFixed(2)} ${unit}`;
+        } else if (diff < 0) {
+            diffIndicator.style.background = '#fee2e2';
+            diffIndicator.style.color = '#991b1b';
+            diffIndicator.innerText = `Decremento: ${diff.toFixed(2)} ${unit}`;
+        } else {
+            diffIndicator.style.background = '#f1f5f9';
+            diffIndicator.style.color = '#475569';
+            diffIndicator.innerText = 'Sin cambios';
+        }
+    }
+
+    articleSelect.addEventListener('change', updateDetails);
+    newQuantityInput.addEventListener('input', updateDiff);
+});
+</script>
+{% endblock %}

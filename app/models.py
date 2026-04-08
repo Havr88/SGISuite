@@ -41,8 +41,8 @@ class Category(db.Model):
 
 class Unit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    abbreviation = db.Column(db.String(20), nullable=False)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    abbreviation = db.Column(db.String(20), nullable=False, unique=True)
     category = db.Column(db.String(50), nullable=False) # Conteo, Empaque, Masa, Volumen, Longitud
     description = db.Column(db.String(200), nullable=True)
 
@@ -64,6 +64,7 @@ class Article(db.Model):
     current_stock = db.Column(db.Float, default=0.0)
     observations = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(50), default="Activo")
+    unit_cost = db.Column(db.Float, default=0.0)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('articles', lazy=True))
 
@@ -94,6 +95,7 @@ class InventoryMovement(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)
     department = db.relationship('Department', backref=db.backref('movements', lazy=True))
     observations = db.Column(db.Text, nullable=True)
+    document_filename = db.Column(db.String(250), nullable=True)
 
 class StockAlert(db.Model):
     id = db.Column(db.Integer, primary_key=True)

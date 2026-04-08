@@ -21,12 +21,10 @@ Este repositorio es el núcleo operativo de la **SGI Suite**, un ecosistema de s
 ### 🏆 Hackatón CubePath 2026
 Este proyecto ha sido desarrollado y optimizado para la **Hackatón CubePath 2026**.
 
-- **🌐 Demo en Vivo:** [SGI Suite en CubePath](https://tu-app.cubepath.app) *(Próximamente)*
+- **🌐 Demo en Vivo:** [SGI Suite en CubePath](https://hackaton2026.havr.cc/) 
 - **☁️ Despliegue en CubePath:** Se ha utilizado la infraestructura de **CubePath** para el despliegue productivo, aprovechando su gestión de variables de entorno para la configuración dinámica de motores de base de Datos (MariaDB/Postgres) y su alta disponibilidad para garantizar el acceso institucional.
 
 #### 📸 Vista Previa
-![Dashboard](file:///home/havr/.gemini/antigravity/brain/1a773ef3-2ba7-4fee-81b9-1b0e94fb2aa4/dashboard_hub_view_1774200494886.png)
-*Panel Principal con Analítica de Stock y Movimientos Mensuales.*
 
 ## 🛠️ Tecnologías
 
@@ -46,7 +44,7 @@ Este proyecto ha sido desarrollado y optimizado para la **Hackatón CubePath 202
 1. **Clonar el repositorio:**
    ```bash
    git clone https://github.com/Havr88/SGISuite.git
-   cd SGISuite/webapp
+   cd SGISuite/
    ```
 
 2. **Instalar dependencias:**
@@ -75,7 +73,7 @@ Este proyecto cuenta con un esquema de doble licenciamiento:
 - **Licencia Primaria:** [GNU Affero General Public License v3 (AGPLv3)](LICENSE)
 - **Licencia Secundaria:** [Licencia Venezolana de Software Libre (LVSL)](LICENSE_LVSL.md)
 
-**Copyright (C) 2026 Henry Villarroel.**
+**Autor 2026 Henry Villarroel.**
 
 ---
 

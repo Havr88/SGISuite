@@ -3,12 +3,12 @@
 {% block content %}
 <div class="header">
     <div>
-        <h1 style="font-size: 2.2rem; margin-bottom: 5px;"><i class="fas fa-microchip" style="color: var(--secondary);"></i> SGI-Core | Estado del Sistema</h1>
+        <h1 style="font-size: 2.2rem; margin-bottom: 5px;"><i class="ti ti-cpu" style="color: var(--secondary);"></i> SGI-Core | Estado del Sistema</h1>
         <p style="color: var(--text-muted); font-size: 1.1rem;">Diagnóstico técnico y rendimiento del servidor en tiempo real.</p>
     </div>
     <div style="display: flex; gap: 10px;">
         <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--border-color); color: var(--text-main);">
-            <i class="fas fa-arrow-left"></i> Volver al Hub
+            <i class="ti ti-arrow-left"></i> Volver al Hub
         </a>
     </div>
 </div>
@@ -18,7 +18,7 @@
     <div class="card" style="margin-bottom: 0;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
             <div class="module-icon-box icon-blue" style="margin-bottom: 0;">
-                <i class="fas fa-microchip"></i>
+                <i class="ti ti-cpu"></i>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 0.8rem; color: var(--text-muted);">Uso de CPU</div>
@@ -35,7 +35,7 @@
     <div class="card" style="margin-bottom: 0;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
             <div class="module-icon-box icon-purple" style="margin-bottom: 0;">
-                <i class="fas fa-memory"></i>
+                <i class="ti ti-box"></i>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 0.8rem; color: var(--text-muted);">Memoria RAM</div>
@@ -52,7 +52,7 @@
     <div class="card" style="margin-bottom: 0;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
             <div class="module-icon-box icon-cyan" style="margin-bottom: 0;">
-                <i class="fas fa-hdd"></i>
+                <i class="ti ti-device-desktop"></i>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 0.8rem; color: var(--text-muted);">Almacenamiento</div>
@@ -70,7 +70,7 @@
     <!-- OS info -->
     <div class="card">
         <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem;">
-            <i class="fas fa-linux" style="color: var(--secondary);"></i> Información del Núcleo
+            <i class="ti ti-brand-linux" style="color: var(--secondary);"></i> Información del Núcleo
         </h3>
         <style>
             .status-list { list-style: none; padding: 0; margin: 0; }
@@ -111,7 +111,7 @@
     <!-- Software Environment -->
     <div class="card">
         <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem;">
-            <i class="fas fa-code" style="color: var(--primary);"></i> Entorno de Ejecución
+            <i class="ti ti-code" style="color: var(--primary);"></i> Entorno de Ejecución
         </h3>
         <ul class="status-list">
             <li><span class="label">Intérprete Python</span><span class="value">{{ sys_info.python_version.split(' ')[0] }}</span></li>

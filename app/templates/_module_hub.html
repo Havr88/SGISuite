@@ -10,14 +10,14 @@
         background: var(--surface);
         border: 1px solid var(--border-color);
         border-radius: 20px;
-        padding: 1.5rem 1.25rem 1.25rem 1.25rem;
+        padding: 1.25rem;
         display: flex;
         flex-direction: column;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
         height: 100%;
-        min-height: 280px;
+        min-height: 220px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
 
@@ -35,7 +35,7 @@
         align-items: center;
         justify-content: center;
         font-size: 1.4rem;
-        margin-bottom: 1.2rem;
+        margin-bottom: 0.8rem;
         position: relative;
     }
 
@@ -69,7 +69,7 @@
         color: var(--text-muted);
         line-height: 1.4;
         font-size: 0.85rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         flex-grow: 1;
     }
 
@@ -106,22 +106,52 @@
 </style>
 
 <div class="hub-grid">
-    <!-- Módulo de Análisis (Nuevo) -->
+    <!-- Módulo de Valoración Financiera (Fase 2) -->
+    <div class="module-card">
+        <div class="module-icon-box icon-green" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+            <i class="ti ti-coin"></i>
+        </div>
+        <h3>Valoración Total</h3>
+        <p>Valor monetario de todos los artículos actualmente en stock basado en el costo unitario.</p>
+        <div style="font-size: 1.8rem; font-weight: 800; color: #10b981; margin-bottom: 1rem; font-family: monospace;">
+            ${{ "{:,.2f}".format(total_valuation) }}
+        </div>
+        <a href="{{ url_for('stock.articles') }}" class="module-btn" style="background: #10b981;">
+            Ver Detalles <i class="ti ti-list-details"></i>
+        </a>
+    </div>
+
+    <!-- Módulo de Análisis -->
     <div class="module-card">
         <div class="module-icon-box icon-purple" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-            <i class="fas fa-chart-pie"></i>
+            <i class="ti ti-chart-pie"></i>
         </div>
         <h3>Análisis e Indicadores</h3>
         <p>Visualiza estadísticas en tiempo real, gráficas de consumo y el estado crítico del inventario.</p>
         <a href="{{ url_for('dashboard.analytics') }}" class="module-btn" style="background: #8b5cf6;">
-            Ver Estadísticas <i class="fas fa-chart-line"></i>
+            Ver Estadísticas <i class="ti ti-chart-line"></i>
+        </a>
+    </div>
+
+    <!-- Centro de Alertas (M4) -->
+    <div class="module-card">
+        <div class="module-icon-box icon-orange" style="background: var(--danger-light); color: var(--danger);">
+            <i class="ti ti-bell-ringing"></i>
+            {% if low_stock_articles and low_stock_articles > 0 %}
+            <div class="module-badge" style="background: var(--danger); animation: pulse-red 2s infinite;">{{ low_stock_articles }}</div>
+            {% endif %}
+        </div>
+        <h3>Centro de Alertas</h3>
+        <p>Monitoreo inmediato de artículos agotados o por debajo del stock mínimo de seguridad.</p>
+        <a href="{{ url_for('stock.alerts') }}" class="module-btn" style="background: var(--danger);">
+            Revisar Alertas <i class="ti ti-alert-triangle"></i>
         </a>
     </div>
 
     <!-- Módulo artículos -->
-    <div class="module-card">
+    <div class="module-card" id="tour-step-2">
         <div class="module-icon-box icon-blue">
-            <i class="fas fa-boxes-stacked"></i>
+            <i class="ti ti-box-multiple-5"></i>
             {% if low_stock_articles and low_stock_articles > 0 %}
             <div class="module-badge">{{ low_stock_articles }}</div>
             {% endif %}
@@ -129,43 +159,55 @@
         <h3>Gestión de Artículos</h3>
         <p>Control de inventario, consulta de existencias y gestión de stock mínimo.</p>
         <a href="{{ url_for('stock.articles') }}" class="module-btn">
-            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+            Acceder al Módulo <i class="ti ti-arrow-right"></i>
         </a>
     </div>
 
     <!-- Gestión de Ingresos -->
-    <div class="module-card">
+    <div class="module-card" id="tour-step-3">
         <div class="module-icon-box icon-green">
-            <i class="fas fa-file-import"></i>
+            <i class="ti ti-file-import"></i>
         </div>
         <h3>Registro de Ingresos</h3>
         <p>Incorporación de nuevos materiales y suministros al almacén central.</p>
         <a href="{{ url_for('stock.inventory_in') }}" class="module-btn">
-            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+            Acceder al Módulo <i class="ti ti-arrow-right"></i>
         </a>
     </div>
 
     <!-- Gestión de Entregas -->
-    <div class="module-card">
+    <div class="module-card" id="tour-step-4">
         <div class="module-icon-box icon-purple">
-            <i class="fas fa-file-export"></i>
+            <i class="ti ti-file-export"></i>
         </div>
         <h3>Registro de Entregas</h3>
         <p>Control de salida de materiales hacia departamentos y responsables.</p>
         <a href="{{ url_for('stock.inventory_out') }}" class="module-btn">
-            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+            Acceder al Módulo <i class="ti ti-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Ajuste Manual (M2) -->
+    <div class="module-card">
+        <div class="module-icon-box icon-slate" style="background: rgba(148, 163, 184, 0.1); color: var(--secondary);">
+            <i class="ti ti-adjustments-horizontal"></i>
+        </div>
+        <h3>Ajuste de Saldo</h3>
+        <p>Corrección manual de existencias para sincronización con inventario físico.</p>
+        <a href="{{ url_for('stock.inventory_adj') }}" class="module-btn" style="background: var(--secondary);">
+            Realizar Ajuste <i class="ti ti-replace"></i>
         </a>
     </div>
 
     <!-- Reportes Centralizados -->
     <div class="module-card">
         <div class="module-icon-box icon-orange">
-            <i class="fas fa-chart-line"></i>
+            <i class="ti ti-chart-line"></i>
         </div>
         <h3>Reportes y Análisis</h3>
         <p>Historial demovimientos, estadísticas de consumo y reportes PDF/Excel.</p>
         <a href="{{ url_for('reports.movements') }}" class="module-btn">
-            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+            Acceder al Módulo <i class="ti ti-arrow-right"></i>
         </a>
     </div>
 
@@ -173,24 +215,24 @@
     {% if current_user.is_admin %}
     <div class="module-card">
         <div class="module-icon-box icon-cyan">
-            <i class="fas fa-landmark"></i>
+            <i class="ti ti-building-monument"></i>
         </div>
         <h3>Perfil Institucional</h3>
         <p>Identidad visual de la organización, logos y configuración de contacto.</p>
         <a href="{{ url_for('admin.config') }}" class="module-btn">
-            Acceder al Módulo <i class="fas fa-arrow-right"></i>
+            Acceder al Módulo <i class="ti ti-arrow-right"></i>
         </a>
     </div>
 
     <!-- Gestión de Usuarios (Nuevo) -->
     <div class="module-card">
         <div class="module-icon-box icon-slate" style="background: rgba(71, 85, 105, 0.1); color: #475569;">
-            <i class="fas fa-users-cog"></i>
+            <i class="ti ti-users-group"></i>
         </div>
         <h3>Gestión de Usuarios</h3>
         <p>Control total sobre cuentas, contraseñas y niveles de acceso (Roles).</p>
         <a href="{{ url_for('admin.list_users') }}" class="module-btn" style="background: #475569;">
-            Gestionar Cuentas <i class="fas fa-user-shield"></i>
+            Gestionar Cuentas <i class="ti ti-shield-lock"></i>
         </a>
     </div>
     {% endif %}
@@ -198,12 +240,12 @@
     <!-- Soporte Técnico -->
     <div class="module-card">
         <div class="module-icon-box icon-slate">
-            <i class="fas fa-microchip"></i>
+            <i class="ti ti-cpu"></i>
         </div>
         <h3>SGI-Core | Estado</h3>
         <p>Información técnica del servidor, versión del núcleo y diagnóstico de sistema.</p>
         <a href="{{ url_for('admin.status') }}" class="module-btn" style="background: var(--secondary);">
-            Ver Diagnóstico <i class="fas fa-tools"></i>
+            Ver Diagnóstico <i class="ti ti-tools"></i>
         </a>
     </div>
 </div>

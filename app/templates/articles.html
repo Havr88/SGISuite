@@ -2,10 +2,18 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-boxes" style="color: var(--primary);"></i> SGI-Stock | Inventario General</h1>
-    <button onclick="document.getElementById('addModal').style.display='block'" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Nuevo Artículo
-    </button>
+    <h1><i class="ti ti-boxes" style="color: var(--primary);"></i> SGI-Stock | Inventario General</h1>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('reports.download_articles_pdf') }}" class="btn" style="background: var(--danger); color: white; text-decoration: none;">
+            <i class="ti ti-file-type-pdf"></i> Exportar PDF
+        </a>
+        <a href="{{ url_for('reports.download_articles_xlsx') }}" class="btn" style="background: var(--success); color: white; text-decoration: none;">
+            <i class="ti ti-file-type-xls"></i> Exportar Excel
+        </a>
+        <button onclick="document.getElementById('addModal').style.display='block'" class="btn btn-primary">
+            <i class="ti ti-plus"></i> Nuevo Artículo
+        </button>
+    </div>
 </div>
 
 <div class="card">
@@ -17,8 +25,11 @@
                     <th>Categoría</th>
                     <th>Ubicación</th>
                     <th>Stock Actual</th>
+                    <th>Costo Unitario</th>
+                    <th>Valor Total</th>
                     <th>Configuración Unidades</th>
                     <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -36,9 +47,15 @@
                         </div>
                         <div style="font-size: 0.65rem;">Min: {{ "%.1f"|format(a.min_stock) }}</div>
                     </td>
+                    <td style="font-family: monospace; font-weight: 600; color: var(--text-main);">
+                        ${{ "%.2f"|format(a.unit_cost or 0) }}
+                    </td>
+                    <td style="font-family: monospace; font-weight: 700; color: var(--primary);">
+                        ${{ "%.2f"|format((a.current_stock or 0) * (a.unit_cost or 0)) }}
+                    </td>
                     <td>
                         <div style="font-size: 0.85rem;">
-                            <i class="fas fa-shopping-cart" title="Compra"></i> {{ a.purchase_unit.name if a.purchase_unit else 'N/A' }}
+                            <i class="ti ti-shopping-cart" title="Compra"></i> {{ a.purchase_unit.name if a.purchase_unit else 'N/A' }}
                         </div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">
                             1 {{ a.purchase_unit.abbreviation if a.purchase_unit else '?' }} = {{ a.conversion_factor }} {{ a.base_unit.abbreviation }}
@@ -48,16 +65,51 @@
                         <span class="badge" style="background: {% if a.current_stock <= a.min_stock %}#fee2e2; color: #ef4444{% else %}#ecfdf5; color: #10b981{% endif %};">
                             {% if a.current_stock <= a.min_stock %}STOCK BAJO{% else %}NORMAL{% endif %}
                         </span>
+                        {% if a.status != 'Activo' %}
+                        <span class="badge" style="background: #e2e8f0; color: #475569; margin-top: 5px;">{{ a.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button onclick="openEditArticleModal('{{ a.id }}', '{{ a.name|replace('\'', '\\\'') }}', '{{ a.category_id }}', '{{ (a.location or '')|replace('\'', '\\\'') }}', '{{ a.base_unit_id }}', '{{ a.purchase_unit_id }}', '{{ a.conversion_factor }}', '{{ a.min_stock }}', '{{ a.max_stock }}', '{{ (a.observations or '')|replace('\'', '\\\'') }}', '{{ a.status }}', '{{ a.unit_cost }}')" class="btn" title="Editar" style="background:#e0e7ff; color:var(--primary); padding:5px 10px; font-size:1.1rem;"><i class="ti ti-edit"></i></button>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 3rem;">No hay artículos registrados en SGI-Stock.</td>
+                    <td colspan="8" style="text-align: center; padding: 3rem;">No hay artículos registrados en SGI-Stock.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding: 1rem; border-top: 1px solid var(--border-color);">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+            Mostrando página <strong>{{ pagination.page }}</strong> de <strong>{{ pagination.pages }}</strong> 
+            ({{ pagination.total }} artículos totales)
+        </div>
+        <div style="display:flex; gap: 5px; flex-wrap: wrap;">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('stock.articles', page=pagination.prev_num) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">&laquo;</a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <span class="btn" style="background:var(--primary); border:1px solid var(--primary); color:white; padding: 5px 10px;">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('stock.articles', page=page_num) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span style="padding: 5px 10px; color:var(--text-muted);">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('stock.articles', page=pagination.next_num) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">&raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Modal para agregar artículo -->
@@ -67,7 +119,8 @@
             <h2 style="margin:0;">Agregar a SGI-Stock</h2>
             <button onclick="document.getElementById('addModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
-        <form method="POST" action="{{ url_for('stock.add_article') }}">
+        <form method="POST" action="{{ url_for('stock.add_article') }}" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Nombre del Artículo</label>
                 <input type="text" name="name" required placeholder="Ej. Cable UTP Cat6">
@@ -85,7 +138,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <button type="button" onclick="document.getElementById('catModal').style.display='flex'" class="btn" style="padding:0 10px; background:var(--secondary); height:38px; margin-top:24px;"><i class="fas fa-plus"></i></button>
+                        <button type="button" onclick="document.getElementById('catModal').style.display='flex'" class="btn" style="padding:0 10px; background:var(--secondary); height:38px; margin-top:24px;"><i class="ti ti-plus"></i></button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -95,7 +148,7 @@
             </div>
 
             <div style="padding: 1.5rem; background: var(--bg-color); border-radius: 15px; margin: 1.5rem 0; border: 1px dashed var(--primary);">
-                <h4 style="margin-top: 0; color: var(--primary);"><i class="fas fa-cog"></i> Configuración de Unidades Técnicas</h4>
+                <h4 style="margin-top: 0; color: var(--primary);"><i class="ti ti-settings"></i> Configuración de Unidades Técnicas</h4>
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 10px;">
                     <div class="form-group">
@@ -109,7 +162,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <button type="button" onclick="document.getElementById('unitModal').style.display='flex'" class="btn" style="padding:0 10px; background:var(--secondary); height:38px; margin-top:24px;"><i class="fas fa-plus"></i></button>
+                            <button type="button" onclick="document.getElementById('unitModal').style.display='flex'" class="btn" style="padding:0 10px; background:var(--secondary); height:38px; margin-top:24px;"><i class="ti ti-plus"></i></button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -135,10 +188,14 @@
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr; gap:10px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div class="form-group">
                     <label>Stock Mínimo de Alerta</label>
                     <input type="number" step="0.1" name="min_stock" value="10.0">
+                </div>
+                <div class="form-group">
+                    <label>Costo Unitario (Base)</label>
+                    <input type="number" step="0.01" name="unit_cost" value="0.00" placeholder="0.00">
                 </div>
             </div>
             
@@ -148,7 +205,102 @@
             </div>
             
             <button type="submit" class="btn" style="width:100%; padding:1rem; background: var(--primary); color: white; font-weight: 700; border-radius: 12px; margin-top: 10px;">
-                <i class="fas fa-save"></i> Registrar en SGI-Stock
+                <i class="ti ti-device-floppy"></i> Registrar en SGI-Stock
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para editar artículo -->
+<div id="editArticleModal" style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+    <div class="card" style="width:600px; margin: 50px auto; padding:2rem; max-height: 90vh; overflow-y: auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="margin:0;">Editar <span id="editArticleTitle" style="color:var(--primary);"></span></h2>
+            <button onclick="document.getElementById('editArticleModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <form id="editArticleForm" method="POST" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label>Nombre del Artículo</label>
+                <input type="text" id="editName" name="name" required>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <div style="display:flex; gap:5px;">
+                        <select name="category_id" id="editCatId" required style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-radius:10px; background: var(--surface); color: var(--text-main);">
+                            {% for c in categories %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="editLoc" name="location">
+                </div>
+            </div>
+
+            <div style="padding: 1.5rem; background: var(--bg-color); border-radius: 15px; margin: 1.5rem 0; border: 1px dashed var(--primary);">
+                <h4 style="margin-top: 0; color: var(--primary);"><i class="ti ti-settings"></i> Configuración de Unidades Técnicas</h4>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 10px;">
+                    <div class="form-group">
+                        <label>Unidad Base (Stock)</label>
+                        <select name="base_unit_id" id="editBaseUnit" required style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-radius:10px; background: var(--surface); color: var(--text-main);">
+                            {% for u in units %}
+                            <option value="{{ u.id }}">{{ u.name }} ({{ u.abbreviation }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Unidad de Compra</label>
+                        <select name="purchase_unit_id" id="editPurUnit" style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-radius:10px; background: var(--surface); color: var(--text-main);">
+                            <option value="">(Misma que base)</option>
+                            {% for u in units %}
+                            <option value="{{ u.id }}">{{ u.name }} ({{ u.abbreviation }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Factor de Conversión</label>
+                    <input type="number" step="0.001" id="editConvFac" name="conversion_factor" required>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>Stock Mínimo</label>
+                    <input type="number" step="0.01" id="editMinStk" name="min_stock" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock Máximo</label>
+                    <input type="number" step="0.01" id="editMaxStk" name="max_stock" required>
+                </div>
+                <div class="form-group">
+                    <label>Costo Unitario</label>
+                    <input type="number" step="0.01" id="editUnitCost" name="unit_cost" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Estado</label>
+                <select name="status" id="editStatus" required style="width:100%; padding:0.55rem; border:1px solid var(--border-color); border-radius:10px; background: var(--surface); color: var(--text-main);">
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Observaciones / Descripción Corta</label>
+                <input type="text" id="editObs" name="observations">
+            </div>
+
+            <button type="submit" class="btn" style="width:100%; padding:1rem; background: var(--primary); color: white; font-weight: 700; border-radius: 12px; margin-top: 10px;">
+                <i class="ti ti-device-floppy"></i> Guardar Cambios
             </button>
         </form>
     </div>
@@ -158,7 +310,8 @@
 <div id="catModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
     <div class="card" style="width:400px; position:relative;">
         <h3>Nueva Categoría Rápida</h3>
-        <form action="{{ url_for('stock.categories') }}" method="POST">
+        <form action="{{ url_for('stock.categories') }}" method="POST" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="next" value="{{ url_for('stock.articles', openAddModal=1) }}">
             <div class="form-group"><label>Nombre</label><input type="text" name="name" required></div>
             <button type="submit" class="btn" style="width:100%; background:var(--secondary);">Guardar Categoría</button>
@@ -171,7 +324,8 @@
 <div id="unitModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;">
     <div class="card" style="width:400px; position:relative;">
         <h3>Nueva Unidad Rápida</h3>
-        <form action="{{ url_for('stock.add_unit') }}" method="POST">
+        <form action="{{ url_for('stock.add_unit') }}" method="POST" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="next" value="{{ url_for('stock.articles', openAddModal=1) }}">
             <div class="form-group"><label>Nombre (Ej. Tambor)</label><input type="text" name="name" required></div>
             <div class="form-group"><label>Abreviación (Ej. Tbr)</label><input type="text" name="abbreviation" required></div>
@@ -231,5 +385,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function openEditArticleModal(id, name, catId, loc, baseId, purId, convFac, minStk, maxStk, obs, status, unitCost) {
+    document.getElementById('editArticleForm').action = "/articles/edit/" + id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editCatId').value = catId;
+    document.getElementById('editLoc').value = loc;
+    document.getElementById('editBaseUnit').value = baseId;
+    document.getElementById('editPurUnit').value = purId === "None" ? "" : purId;
+    document.getElementById('editConvFac').value = convFac;
+    document.getElementById('editMinStk').value = minStk;
+    document.getElementById('editMaxStk').value = maxStk;
+    document.getElementById('editObs').value = obs;
+    document.getElementById('editStatus').value = status;
+    document.getElementById('editUnitCost').value = unitCost;
+    document.getElementById('editArticleTitle').textContent = name;
+    document.getElementById('editArticleModal').style.display = 'block';
+}
 </script>
 {% endblock %}

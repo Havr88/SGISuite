@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-file-alt" style="color: var(--primary);"></i> Historial de Movimientos</h1>
+    <h1><i class="ti ti-file-alt" style="color: var(--primary);"></i> Historial de Movimientos</h1>
         <!-- Filtros Avanzados -->
         <form method="GET" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; background: var(--surface); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
             <div class="filter-group">
@@ -46,22 +46,31 @@
             </div>
 
             <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 700;">
-                <i class="fas fa-search"></i> Aplicar Filtros
+                <i class="ti ti-search"></i> Aplicar Filtros
             </button>
+            
+            <a href="{{ url_for('reports.download_movements_pdf', month=current_month, year=current_year, article_id=current_article_id, department_id=current_department_id) }}" 
+               class="btn" style="background: var(--danger); color: white; padding: 10px 20px; font-weight: 700; border-radius: 12px; text-decoration: none;">
+                <i class="ti ti-file-type-pdf"></i> Exportar PDF
+            </a>
             
             {% if current_month or current_year or current_article_id or current_department_id %}
             <a href="{{ url_for('reports.movements') }}" class="btn" style="padding: 10px; background: #f1f5f9; color: #475569; text-decoration: none; border-radius:10px;">
-                <i class="fas fa-times-circle"></i> Limpiar
+                <i class="ti ti-circle-x"></i> Limpiar
             </a>
             {% endif %}
         </form>
 
+
         <div style="display: flex; gap: 8px;">
             <a href="{{ url_for('reports.correlation', month=current_month, year=current_year) }}" class="btn" style="background: var(--purple); color: white; text-decoration: none;">
-                <i class="fas fa-balance-scale"></i> Análisis
+                <i class="ti ti-balance-scale"></i> Análisis
+            </a>
+            <a href="{{ url_for('reports.download_movements_xlsx', month=current_month, year=current_year, article_id=current_article_id, department_id=current_department_id) }}" class="btn" style="background: var(--success); color: white; text-decoration: none;">
+                <i class="ti ti-file-type-xls"></i> Excel
             </a>
             <a href="{{ url_for('reports.download_movements_pdf', month=current_month, year=current_year, article_id=current_article_id, department_id=current_department_id) }}" class="btn btn-primary" style="text-decoration: none;">
-                <i class="fas fa-file-pdf"></i> PDF
+                <i class="ti ti-file-type-pdf"></i> PDF
             </a>
         </div>
     </div>
@@ -100,6 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <th>Artículo</th>
                     <th>Cantidad</th>
                     <th>Destino / Beneficiario</th>
+                    <th>Adjuntos</th>
+                    <th>Comprobante</th>
                     <th>Usuario SGI</th>
                 </tr>
             </thead>
@@ -108,9 +119,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <tr>
                     <td>{{ m.date.strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>
-                        <span class="badge" style="background: {% if m.movement_type == 'IN' %}#ecfdf5; color: #10b981{% else %}#fff7ed; color: #f97316{% endif %};">
-                            {% if m.movement_type == 'IN' %}INGRESO{% else %}EGRESO{% endif %}
-                        </span>
+                        {% if m.movement_type == 'IN' %}
+                        <span class="badge" style="background: #ecfdf5; color: #10b981;">INGRESO</span>
+                        {% else %}
+                        <span class="badge" style="background: #fff7ed; color: #f97316;">EGRESO</span>
+                        {% endif %}
                     </td>
                     <td><strong>{{ m.article.name }}</strong></td>
                     <td>{{ "%.2f"|format(m.quantity) }} {{ m.article.base_unit.abbreviation }}</td>
@@ -123,15 +136,62 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span style="color: #94a3b8;">N/A (Carga)</span>
                         {% endif %}
                     </td>
-                    <td><i class="fas fa-user-circle"></i> {{ m.user.username }}</td>
+                    <td>
+                        {% if m.attachment_filename %}
+                        <a href="{{ url_for('static', filename='uploads/attachments/' + m.attachment_filename) }}" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.8rem; background: var(--info-light); color: var(--info);">
+                            <i class="ti ti-paperclip"></i> Ver Adjunto
+                        </a>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if m.document_filename %}
+                        <a href="{{ url_for('static', filename='uploads/movements/' + m.document_filename) }}" target="_blank" class="btn" style="padding: 5px 10px; font-size: 0.8rem; background: var(--secondary-light); color: var(--secondary);">
+                            <i class="ti ti-file-symlink"></i> Ver Doc
+                        </a>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">-</span>
+                        {% endif %}
+                    </td>
+                    <td><i class="ti ti-user-circle"></i> {{ m.user.username }}</td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 3rem;">No hay movimientos registrados en SGI-Docs.</td>
+                    <td colspan="8" style="text-align: center; padding: 3rem;">No hay movimientos registrados en SGI-Docs.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% if pagination and pagination.pages > 1 %}
+    <div style="display:flex; justify-content:space-between; align-items:center; padding: 1rem; border-top: 1px solid var(--border-color);">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+            Mostrando página <strong>{{ pagination.page }}</strong> de <strong>{{ pagination.pages }}</strong> 
+            ({{ pagination.total }} movimientos totales)
+        </div>
+        <div style="display:flex; gap: 5px; flex-wrap: wrap;">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('reports.movements', page=pagination.prev_num, month=current_month, year=current_year, article_id=current_article_id, department_id=current_department_id) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">&laquo;</a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <span class="btn" style="background:var(--primary); border:1px solid var(--primary); color:white; padding: 5px 10px;">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('reports.movements', page=page_num, month=current_month, year=current_year, article_id=current_article_id, department_id=current_department_id) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span style="padding: 5px 10px; color:var(--text-muted);">...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('reports.movements', page=pagination.next_num, month=current_month, year=current_year, article_id=current_article_id, department_id=current_department_id) }}" class="btn" style="background:var(--surface); border:1px solid var(--border-color); padding: 5px 10px; color:var(--text-main); text-decoration:none;">&raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

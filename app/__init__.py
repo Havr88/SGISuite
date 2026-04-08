@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash
 from dotenv import load_dotenv
 from flask_caching import Cache # Added Flask-Caching import
 from flask_sqlalchemy import SQLAlchemy # Added SQLAlchemy import for global db object
+from flask_wtf.csrf import CSRFProtect # Added CSRFProtect import
 
 # Cargar variables de entorno desde .env si existe
 load_dotenv()
@@ -12,6 +13,7 @@ load_dotenv()
 # Initialize extensions globally
 login_manager = LoginManager()
 cache = Cache() # Initialized Cache globally
+csrf = CSRFProtect() # Initialized CSRF globally
 
 from app.models import db, User, InstitutionConfig, Category, Article, Department, InventoryMovement, StockAlert # Removed db from import as it's now global
 
@@ -53,6 +55,10 @@ def create_app(test_config=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'img', 'logos')
+    app.config['MOVEMENTS_UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads', 'movements')
+    
+    if not os.path.exists(app.config['MOVEMENTS_UPLOAD_FOLDER']):
+        os.makedirs(app.config['MOVEMENTS_UPLOAD_FOLDER'])
 
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)
@@ -67,13 +73,17 @@ def create_app(test_config=None):
     db.init_app(app)
     login_manager.init_app(app)
     cache.init_app(app)
+    csrf.init_app(app) # Initialized CSRF protection
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Por favor inicie sesión para acceder a esta página.'
+    login_manager.login_message_category = 'warning'
     # Register configurations context processor
     @app.context_processor
     def inject_config():
-        from app.models import InstitutionConfig
+        from app.models import InstitutionConfig, Article
         config = InstitutionConfig.query.first()
-        return dict(config=config)
+        low_stock_count = Article.query.filter(Article.current_stock <= Article.min_stock).count()
+        return dict(config=config, low_stock_count=low_stock_count)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -111,6 +121,10 @@ def create_app(test_config=None):
         if not InstitutionConfig.query.first():
             config = InstitutionConfig()
             db.session.add(config)
+            
+        # Ejecutar Semillas de Datos (Categrorías y Unidades)
+        from app.seeds import seed_defaults
+        seed_defaults()
             
         db.session.commit()
 

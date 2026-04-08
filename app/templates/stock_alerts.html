@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="header">
+    <h1><i class="ti ti-bell-ringing" style="color: var(--danger);"></i> Centro de Alertas de Inventario</h1>
+    <p style="color: var(--text-muted);">Monitoreo de artículos con existencias por debajo del stock mínimo establecido.</p>
+</div>
+
+<div class="alerts-container" style="max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+    <!-- Lista de Artículos Críticos -->
+    <div class="main-alerts">
+        <h3 style="margin-bottom: 1.5rem;"><i class="ti ti-alert-triangle"></i> Existencias Críticas Actuales</h3>
+        {% if articles %}
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Stock Actual</th>
+                            <th>Mínimo Requerido</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in articles %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.name }}</strong><br>
+                                <small>{{ a.category.name }}</small>
+                            </td>
+                            <td style="color: var(--danger); font-weight: 700;">
+                                {{ "%.2f"|format(a.current_stock) }} {{ a.base_unit.abbreviation }}
+                            </td>
+                            <td>{{ "%.2f"|format(a.min_stock) }} {{ a.base_unit.abbreviation }}</td>
+                            <td>
+                                <span class="badge" style="background: var(--danger-light); color: var(--danger);">Reabastecer</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('stock.inventory_in') }}?article_id={{ a.id }}" class="btn" style="background: var(--success); color: white; padding: 5px 12px; font-size: 0.85rem;">
+                                    <i class="ti ti-plus"></i> Ingresar
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; padding: 3rem; border: 2px dashed var(--border-color); background: transparent;">
+            <i class="ti ti-circle-check" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem; display: block;"></i>
+            <h3 style="color: var(--success);">¡Todo en orden!</h3>
+            <p style="color: var(--text-muted);">No hay artículos con stock crítico en este momento.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Historial de Alertas / Notificaciones -->
+    <div class="alerts-sidebar">
+        <h3 style="margin-bottom: 1.5rem;"><i class="ti ti-history"></i> Alertas Pendientes</h3>
+        {% if alerts %}
+            {% for alert in alerts %}
+            <div class="card" style="margin-bottom: 1rem; padding: 15px; border-left: 4px solid var(--warning);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <strong style="font-size: 0.95rem;">{{ alert.article.name }}</strong>
+                    <small style="color: var(--text-muted);">{{ alert.alert_date.strftime('%d/%m %H:%M') }}</small>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">El stock ha caído por debajo del nivel de seguridad.</p>
+                <form action="{{ url_for('stock.resolve_alert', id=alert.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn" style="width: 100%; font-size: 0.8rem; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);">
+                        Marcar como Leída
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px;">No hay notificaciones pendientes.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    @media (max-width: 900px) {
+        .alerts-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

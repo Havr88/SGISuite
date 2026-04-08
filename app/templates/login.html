@@ -3,131 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso al Sistema</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <title>SGI Suite &bull; Acceso</title>
+    <!-- Integración Visual SGI-Core v1.0 -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/tabler-icons/tabler-icons.min.css') }}">
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            font-family: 'Inter', sans-serif;
-            color: #333;
+            margin: 0; padding: 0;
+            display: flex; height: 100vh;
+            justify-content: center; align-items: center;
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f4f7fb; /* Fondo ligerísimamente grisado para resaltar la sombra blanca de la tarjeta */
+            color: #334155;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .split-layout {
+            display: flex; 
+            width: 100%; max-width: 1000px; 
+            height: 600px;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0,0,0,0.02);
+        }
+        .left-panel {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: #ffffff; padding: 3rem;
+            animation: slideRight 0.8s ease-out;
+        }
+        
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .right-panel {
+            flex: 1; 
+            background: url("{{ url_for('static', filename='img/login_bg_wave.png') }}") no-repeat center center;
+            background-size: cover;
+            position: relative;
+            box-shadow: inset 20px 0 30px -15px rgba(0,0,0,0.15); /* Sombra suave para dividir */
+        }
+        /* Mobile handling */
+        @media screen and (max-width: 900px) {
+            .split-layout {
+                flex-direction: column;
+                height: auto;
+                min-height: 500px;
+            }
+            .right-panel { display: none; }
         }
 
         .login-box {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 3rem;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            animation: fadeIn 0.6s ease;
+            width: 100%; max-width: 420px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        .brand { text-align: center; margin-bottom: 4rem; }
+        .brand h1 {
+            font-size: 3.5rem; margin: 0; font-weight: 700;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -1.5px;
+        }
+        .brand p { 
+            color: #475569; font-size: 1.15rem; margin-top: 0.2rem; font-weight: 600;
         }
 
-        .login-box h1 {
-            margin-bottom: 0.5rem;
-            color: #0f172a;
-            font-size: 2rem;
-            font-weight: 800;
+        .input-group { margin-bottom: 2rem; text-align: left; }
+        .input-group label { 
+            display: block; margin-bottom: 10px; font-weight: 700; font-size: 0.95rem; color: #1e293b;
         }
-
-        .login-box p {
-            color: #64748b;
-            margin-bottom: 2rem;
-            font-size: 0.95rem;
-        }
-
-        .input-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #334155;
-            font-size: 0.9rem;
-        }
-
         .input-group input {
-            width: 100%;
-            padding: 1rem 1.2rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            box-sizing: border-box;
+            width: 100%; padding: 1.25rem 1.5rem;
+            border: 1px solid #cbd5e1; border-radius: 10px;
+            font-size: 1rem; color: #0f172a; box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #f8fafc;
         }
-
         .input-group input:focus {
-            border-color: #2563eb;
-            outline: none;
+            outline: none; border-color: #2563eb; background: #ffffff;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
 
         .btn {
-            width: 100%;
-            padding: 1.1rem;
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%; padding: 1.25rem; font-size: 1.2rem;
+            background: #143ca3; /* Darker clean blue */
+            color: #fff; border: none;
+            border-radius: 9999px; /* Estilo píldora tipo Auth0/Stripe */
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
+            font-family: 'Quicksand', sans-serif;
             margin-top: 1rem;
+            box-shadow: 0 4px 14px 0 rgba(20, 60, 163, 0.39);
         }
-
-        .btn:hover {
+        .btn:hover { 
+            background: #0f2c7a; 
+            box-shadow: 0 6px 20px rgba(20, 60, 163, 0.23);
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
-            background: linear-gradient(135deg, #1d4ed8, #4338ca);
         }
 
-        .flashes { margin-bottom: 1.5rem; }
-        .alert { background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 10px; font-weight: 500; }
+        .flashes { margin-bottom: 2rem; }
+        .alert { 
+            background: #fef2f2; color: #991b1b; padding: 1rem 1.5rem; 
+            border-radius: 10px; font-weight: 600; font-size: 0.95rem; 
+            border: 1px solid #fecaca;
+            display: flex; align-items: center; gap: 8px;
+        }
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h1>INVENTARIO</h1>
-        <p>Sistema de Gestión Multisistema</p>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flashes">
-                {% for category, message in messages %}
-                    <div class="alert {{ category }}">{{ message }}</div>
-                {% endfor %}
+    <div class="split-layout">
+        <!-- Lado Izquierdo: Formulario -->
+        <div class="left-panel">
+            <div class="login-box">
+                <div class="brand">
+                    <h1>SGI Suite</h1>
+                    <p>Sistema de Gestión de Inventario</p>
                 </div>
-            {% endif %}
-        {% endwith %}
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flashes">
+                        {% for category, message in messages %}
+                            <div class="alert {{ category }}">
+                                <i class="ti ti-alert-circle" style="font-size:1.2rem"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
 
-        <form method="POST" action="{{ url_for('auth.login') }}">
-            <div class="input-group">
-                <label>Usuario</label>
-                <input type="text" name="username" required placeholder="Ingrese su usuario">
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group">
+                        <label>Usuario</label>
+                        <input type="text" name="username" required placeholder="Ingrese su usuario">
+                    </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" name="password" required placeholder="Ingrese su contraseña">
+                    </div>
+                    <button type="submit" class="btn">Iniciar Sesión</button>
+                </form>
             </div>
-            <div class="input-group">
-                <label>Contraseña</label>
-                <input type="password" name="password" required placeholder="Ingrese su contraseña">
-            </div>
-            <button type="submit" class="btn">Iniciar Sesión</button>
-        </form>
+        </div>
+        <!-- Lado Derecho: Imagen Abstracta generada -->
+        <div class="right-panel"></div>
     </div>
 </body>
 </html>

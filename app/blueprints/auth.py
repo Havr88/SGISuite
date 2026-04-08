@@ -35,6 +35,9 @@ def profile():
         # Opcional: Cambiar contraseña si se proporciona
         new_password = request.form.get('new_password')
         if new_password:
+            if len(new_password) < 8:
+                flash('La nueva contraseña debe tener al menos 8 caracteres.', 'danger')
+                return redirect(url_for('auth.profile'))
             current_user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
             
         db.session.commit()

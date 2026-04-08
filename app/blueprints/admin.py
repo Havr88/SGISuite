@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app.models import db, InstitutionConfig
+from app.decorators import admin_required
 from sqlalchemy import text
 import platform
 import psutil
@@ -14,13 +15,8 @@ from app.utils.env_manager import set_env_variable, get_db_config
 admin = Blueprint('admin', __name__)
 
 @admin.route('/admin/config', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def config():
-    # ... existing config code ...
-    if not current_user.is_admin:
-        flash('Acceso denegado. Requiere privilegios de administrador.', 'danger')
-        return redirect(url_for('dashboard.index'))
-        
     config = InstitutionConfig.query.first()
     if not config:
         config = InstitutionConfig()
@@ -70,7 +66,7 @@ def config():
     return render_template('config.html', config=config, db_config=db_config)
 
 @admin.route('/admin/status')
-@login_required
+@admin_required
 def status():
     # System Information
     sys_info = {
@@ -125,21 +121,17 @@ def status():
                            uptime=str(uptime).split('.')[0],
                            db_status=db_status)
 @admin.route('/admin/users')
-@login_required
+@admin_required
 def list_users():
-    if not current_user.is_admin:
-        flash('Acceso denegado.', 'danger')
-        return redirect(url_for('dashboard.index'))
     from app.models import User
-    users = User.query.all()
-    return render_template('users.html', users=users)
+    page = request.args.get('page', 1, type=int)
+    # Paginación (A3)
+    pagination = User.query.paginate(page=page, per_page=15, error_out=False)
+    return render_template('users.html', pagination=pagination, users=pagination.items)
 
 @admin.route('/admin/users/add', methods=['POST'])
-@login_required
+@admin_required
 def add_user():
-    if not current_user.is_admin:
-        return redirect(url_for('dashboard.index'))
-    
     from app.models import User
     from werkzeug.security import generate_password_hash
     
@@ -149,6 +141,10 @@ def add_user():
     email = request.form.get('email')
     role = request.form.get('role', 'Operador')
     is_admin = True if role == 'Administrador' else False
+    
+    if len(password) < 8:
+        flash('La contraseña debe tener al menos 8 caracteres.', 'danger')
+        return redirect(url_for('admin.list_users'))
     
     if User.query.filter_by(username=username).first():
         flash('El nombre de usuario ya existe.', 'danger')
@@ -168,11 +164,8 @@ def add_user():
     return redirect(url_for('admin.list_users'))
 
 @admin.route('/admin/users/edit/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def edit_user(user_id):
-    if not current_user.is_admin:
-        return redirect(url_for('dashboard.index'))
-    
     from app.models import User
     from werkzeug.security import generate_password_hash
     
@@ -185,6 +178,9 @@ def edit_user(user_id):
     
     new_password = request.form.get('password')
     if new_password:
+        if len(new_password) < 8:
+            flash('La nueva contraseña debe tener al menos 8 caracteres.', 'danger')
+            return redirect(url_for('admin.list_users'))
         user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
         
     db.session.commit()
@@ -192,11 +188,8 @@ def edit_user(user_id):
     return redirect(url_for('admin.list_users'))
 
 @admin.route('/admin/users/delete/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_user(user_id):
-    if not current_user.is_admin:
-        return redirect(url_for('dashboard.index'))
-    
     from app.models import User
     user = User.query.get_or_404(user_id)
     

@@ -7,27 +7,27 @@
 {% block content %}
 {% if view_mode == 'analytics' %}
     <div class="header">
-        <h1><i class="fas fa-chart-line" style="color: var(--primary);"></i> SGI-Analytics | Rendimiento</h1>
+        <h1><i class="ti ti-chart-line" style="color: var(--primary);"></i> SGI-Analytics | Rendimiento</h1>
         <div style="display: flex; gap: 10px;">
-            <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--border-color); color: var(--text-main);"><i class="fas fa-arrow-left"></i> Volver al Hub</a>
+            <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--border-color); color: var(--text-main);"><i class="ti ti-arrow-left"></i> Volver al Hub</a>
         </div>
     </div>
 
     <!-- Metrics Cards -->
     <div class="form-grid" style="margin-bottom: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="card" style="margin-bottom: 0; padding: 1.15rem; text-align: center;">
-            <i class="fas fa-box" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
+            <i class="ti ti-box" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
             <h3 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Total de Artículos</h3>
             <p style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); margin: 0;">{{ total_articles }}</p>
         </div>
         <!-- ... same cards as before ... -->
         <div class="card" style="margin-bottom: 0; padding: 1.15rem; text-align: center;">
-            <i class="fas fa-tags" style="font-size: 1.8rem; color: var(--purple); margin-bottom: 8px;"></i>
+            <i class="ti ti-tags" style="font-size: 1.8rem; color: var(--purple); margin-bottom: 8px;"></i>
             <h3 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Categorías</h3>
             <p style="font-size: 1.6rem; font-weight: 700; color: var(--text-main); margin: 0;">{{ total_categories }}</p>
         </div>
         <div class="card" style="margin-bottom: 0; padding: 1.15rem; text-align: center;">
-            <i class="fas fa-exclamation-triangle" style="font-size: 1.8rem; color: var(--danger); margin-bottom: 8px;"></i>
+            <i class="ti ti-alert-triangle" style="font-size: 1.8rem; color: var(--danger); margin-bottom: 8px;"></i>
             <h3 style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Artículos en Stock Bajo</h3>
             <p style="font-size: 1.6rem; font-weight: 700; color: var(--danger); margin: 0;">{{ low_stock_articles }}</p>
         </div>
@@ -36,11 +36,11 @@
     <!-- Charts -->
     <div class="form-grid charts-grid" style="margin-bottom: 2rem;">
         <div class="card" style="margin-bottom: 0;">
-            <h3 style="color: var(--text-main); margin-bottom: 15px;"><i class="fas fa-chart-bar"></i> Entregas (Últimos 7 días)</h3>
+            <h3 style="color: var(--text-main); margin-bottom: 15px;"><i class="ti ti-chart-bar"></i> Entregas (Últimos 7 días)</h3>
             <canvas id="barChart" height="100"></canvas>
         </div>
         <div class="card" style="margin-bottom: 0;">
-            <h3 style="color: var(--text-main); margin-bottom: 15px;"><i class="fas fa-chart-pie"></i> Distribución por Categoría</h3>
+            <h3 style="color: var(--text-main); margin-bottom: 15px;"><i class="ti ti-chart-pie"></i> Distribución por Categoría</h3>
             <canvas id="pieChart" height="200"></canvas>
         </div>
     </div>
@@ -48,7 +48,7 @@
     <!-- Critical Stock Alert (If any) -->
     {% if critical_articles %}
     <div class="card" style="border-left: 4px solid var(--danger);">
-        <h3 style="color: var(--danger); margin-bottom: 15px;"><i class="fas fa-bell"></i> Alerta de Stock Crítico</h3>
+        <h3 style="color: var(--danger); margin-bottom: 15px;"><i class="ti ti-bell"></i> Alerta de Stock Crítico</h3>
         <div class="table-container">
             <table>
                 <thead>
@@ -62,7 +62,7 @@
                     {% for item in critical_articles %}
                     <tr>
                         <td><strong>{{ item.name }}</strong></td>
-                        <td style="color: var(--danger); font-weight: bold;">{{ item.current_stock }} {{ item.unit }}</td>
+                        <td style="color: var(--danger); font-weight: bold;">{{ item.current_stock }} {{ item.base_unit.abbreviation if item.base_unit else '' }}</td>
                         <td>
                             <span class="badge" style="background:var(--danger); color:white;">
                                 {% if item.current_stock == 0 %}Agotado{% else %}Bajo Mínimo{% endif %}
@@ -79,7 +79,7 @@
     <!-- Recent Movements -->
     <div class="card">
         <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="color: var(--text-main);"><i class="fas fa-history"></i> Últimos Movimientos</h3>
+            <h3 style="color: var(--text-main);"><i class="ti ti-history"></i> Últimos Movimientos</h3>
         </div>
         <div class="table-container">
             <table>
@@ -98,13 +98,13 @@
                         <td>{{ m.date.strftime('%d/%m/%Y %H:%M') }}</td>
                         <td>
                             {% if m.movement_type == 'IN' %}
-                            <span class="badge" style="background:var(--success); color:white;"><i class="fas fa-arrow-down"></i> Ingreso</span>
+                            <span class="badge" style="background:var(--success); color:white;"><i class="ti ti-arrow-down"></i> Ingreso</span>
                             {% else %}
-                            <span class="badge" style="background:var(--danger); color:white;"><i class="fas fa-arrow-up"></i> Entrega</span>
+                            <span class="badge" style="background:var(--danger); color:white;"><i class="ti ti-arrow-up"></i> Entrega</span>
                             {% endif %}
                         </td>
                         <td>{{ m.article.name }}</td>
-                        <td><strong>{{ m.quantity }}</strong> {{ m.article.unit }}</td>
+                        <td><strong>{{ m.quantity }}</strong> {{ m.article.base_unit.abbreviation if m.article and m.article.base_unit else '' }}</td>
                         <td>{{ m.department.name if m.department else '-' }}</td>
                     </tr>
                     {% endfor %}
@@ -123,7 +123,6 @@
     </div>
     {% include '_module_hub.html' %}
 {% endif %}
-{% endblock %}
 
 {% if view_mode == 'analytics' %}
 <script>
@@ -172,3 +171,113 @@
     });
 </script>
 {% endif %}
+
+<!-- Script del Onboarding Walkthrough (Driver.js) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Verificar si el tour ya fue completado
+        if (!localStorage.getItem('sgi_tour_completed')) {
+            const driver = window.driver.js.driver;
+            
+            const tour = driver({
+                showProgress: true,
+                allowClose: true,
+                overlayColor: 'rgba(0, 0, 0, 0.75)',
+                nextBtnText: 'Siguiente &rarr;',
+                prevBtnText: '&larr; Anterior',
+                doneBtnText: '¡Entendido!',
+                popoverClass: 'driverjs-theme',
+                onDestroyed: () => {
+                    localStorage.setItem('sgi_tour_completed', 'true');
+                },
+                steps: [
+                    {
+                        popover: {
+                            title: '¡Bienvenido a {{ config.commercial_name or "SGI Suite" }}!',
+                            description: 'Vamos a darte un pequeño tour por las funcionalidades clave para que empieces con el pie derecho.'
+                        }
+                    },
+                    {
+                        element: '#tour-step-1',
+                        popover: {
+                            title: '1. Análisis e Indicadores',
+                            description: 'Monitorea las métricas generales en tiempo real y revisa gráficos detallados de tu almacén.'
+                        }
+                    },
+                    {
+                        element: '#tour-step-2',
+                        popover: {
+                            title: '2. Gestión de Artículos',
+                            description: 'Aquí podrás registrar nuevos artículos, ver el catálogo y configurar alarmas de stock mínimo.'
+                        }
+                    },
+                    {
+                        element: '#tour-step-3',
+                        popover: {
+                            title: '3. Registro de Ingresos',
+                            description: 'Usa este módulo para incorporar nuevos lotes de suministros de manera ágil.'
+                        }
+                    },
+                    {
+                        element: '#tour-step-4',
+                        popover: {
+                            title: '4. Registro de Entregas',
+                            description: 'Controla el lado opuesto: los despachos o salidas de materiales hacia otros departamentos.'
+                        }
+                    },
+                    {
+                        element: '#tour-step-5',
+                        popover: {
+                            title: 'Búsqueda Global',
+                            description: 'Localiza rápidamente cualquier cliente, registro o producto desde cualquier pantalla.'
+                        }
+                    }
+                ]
+            });
+            
+            // Custom CSS inject for theme matching
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .driver-popover.driverjs-theme {
+                    background-color: var(--surface);
+                    color: var(--text-main);
+                    border-radius: 12px;
+                    font-family: 'Quicksand', sans-serif;
+                }
+                .driver-popover.driverjs-theme .driver-popover-title {
+                    color: var(--primary);
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                }
+                .driver-popover.driverjs-theme .driver-popover-description {
+                    color: var(--text-muted);
+                }
+                .driver-popover.driverjs-theme .driver-popover-footer button {
+                    background-color: var(--primary);
+                    color: white;
+                    text-shadow: none;
+                    border-radius: 8px;
+                    border: none;
+                }
+                .driver-popover.driverjs-theme .driver-popover-footer button:hover {
+                    background-color: var(--primary-hover);
+                }
+                .driver-popover.driverjs-theme .driver-popover-close-btn {
+                    color: var(--text-muted);
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Iniciar solo si estamos en la vista HUB para evitar fallos por elementos no encontrados
+            setTimeout(() => {
+                if (document.getElementById('tour-step-1') && document.getElementById('tour-step-5')) {
+                    tour.drive();
+                } else {
+                    // Prevenir que el tour se rompa si el usuario entra directo a analytics
+                    localStorage.setItem('sgi_tour_completed', 'true');
+                }
+            }, 600);
+        }
+    });
+</script>
+{% endblock %}

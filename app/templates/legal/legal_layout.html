@@ -70,18 +70,18 @@
 <div class="legal-container">
     <div class="legal-card">
         <div class="legal-meta">
-            <span><i class="fas fa-calendar-alt"></i> Última actualización: 22 de Marzo, 2026</span>
-            <span><i class="fas fa-map-marker-alt"></i> Jurisdicción: Caracas, Venezuela</span>
+            <span><i class="ti ti-calendar"></i> Última actualización: 22 de Marzo, 2026</span>
+            <span><i class="ti ti-map-pin"></i> Jurisdicción: Caracas, Venezuela</span>
         </div>
         
         {% block legal_content %}{% endblock %}
         
         <div class="legal-navigation">
             <a href="{{ url_for('dashboard.index') }}" class="btn" style="background: var(--bg-color); color: var(--text-main);">
-                <i class="fas fa-arrow-left"></i> Volver al Inicio
+                <i class="ti ti-arrow-left"></i> Volver al Inicio
             </a>
             <button onclick="window.print()" class="btn btn-primary">
-                <i class="fas fa-print"></i> Imprimir Documento
+                <i class="ti ti-printer"></i> Imprimir Documento
             </button>
         </div>
     </div>

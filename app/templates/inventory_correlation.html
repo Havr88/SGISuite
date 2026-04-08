@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-balance-scale" style="color: var(--primary);"></i> SGI-Audit | Correlación Mensual</h1>
+    <h1><i class="ti ti-balance-scale" style="color: var(--primary);"></i> SGI-Audit | Correlación Mensual</h1>
     <div style="display: flex; gap: 1rem; align-items: center;">
         <!-- Filtro Mensual/Anual -->
         <form method="GET" style="display: flex; gap: 10px; align-items: center; background: var(--surface); padding: 8px 15px; border-radius: 12px; border: 1px solid var(--border-color);">
@@ -26,10 +26,13 @@
                 {% endfor %}
             </select>
             <button type="submit" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">
-                <i class="fas fa-sync"></i> Recalcular
+                <i class="ti ti-refresh"></i> Recalcular
             </button>
         </form>
-        <a href="{{ url_for('reports.movements') }}" class="btn" style="background: var(--bg-color); color: var(--text-main);"><i class="fas fa-arrow-left"></i> Volver</a>
+        <a href="{{ url_for('reports.download_correlation_pdf', month=current_month, year=current_year) }}" class="btn" style="background: var(--danger); color: white; text-decoration: none;">
+            <i class="ti ti-file-type-pdf"></i> Exportar Auditoría PDF
+        </a>
+        <a href="{{ url_for('reports.movements') }}" class="btn" style="background: var(--bg-color); color: var(--text-main);"><i class="ti ti-arrow-left"></i> Volver</a>
     </div>
 </div>
 
@@ -55,7 +58,7 @@
                 {% for d in data %}
                 <tr>
                     <td><strong>{{ d.article.name }}</strong><br><small style="color: var(--text-muted);">{{ d.article.category.name }}</small></td>
-                    <td style="text-align: center;"><span class="badge" style="background: var(--bg-color); color: var(--text-main);">{{ d.article.unit }}</span></td>
+                    <td style="text-align: center;"><span class="badge" style="background: var(--bg-color); color: var(--text-main);">{{ d.article.base_unit.abbreviation if d.article.base_unit else 'N/A' }}</span></td>
                     <td style="text-align: right; font-family: monospace; font-size: 1rem;">{{ "%.3f"|format(d.opening) }}</td>
                     <td style="text-align: right; font-family: monospace; color: var(--success);">+{{ "%.3f"|format(d.ins) }}</td>
                     <td style="text-align: right; font-family: monospace; color: var(--danger);">-{{ "%.3f"|format(d.outs) }}</td>
@@ -68,6 +71,6 @@
 </div>
 
 <div style="margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem; padding: 1rem; background: var(--bg-color); border-radius: 12px; border: 1px dashed var(--border-color);">
-    <i class="fas fa-info-circle"></i> <strong>Nota Técnica:</strong> El saldo inicial se calcula retrospectivamente partiendo del stock actual y restando algebraicamente todos los movimientos ocurridos desde el fin del periodo seleccionado hasta hoy. Esta metodología garantiza la precisión absoluta incluso si el reporte se consulta meses después.
+    <i class="ti ti-info-circle"></i> <strong>Nota Técnica:</strong> El saldo inicial se calcula retrospectivamente partiendo del stock actual y restando algebraicamente todos los movimientos ocurridos desde el fin del periodo seleccionado hasta hoy. Esta metodología garantiza la precisión absoluta incluso si el reporte se consulta meses después.
 </div>
 {% endblock %}

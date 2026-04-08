@@ -2,13 +2,14 @@
 
 {% block content %}
 <div class="header">
-    <h1><i class="fas fa-tags" style="color: var(--primary);"></i> SGI-Stock | Categorías</h1>
+    <h1><i class="ti ti-tags" style="color: var(--primary);"></i> SGI-Stock | Categorías</h1>
 </div>
 
 <div class="form-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
     <div class="card" style="margin-bottom: 0;">
         <h3 style="margin-bottom: 15px;">Nueva Categoría</h3>
-        <form method="POST" action="{{ url_for('stock.categories') }}">
+        <form method="POST" action="{{ url_for('stock.categories') }}" onsubmit="return handleAjaxSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Nombre de Categoría</label>
                 <input type="text" name="name" required placeholder="Ej. Papelería, Limpieza...">
@@ -17,7 +18,7 @@
                 <label>Descripción</label>
                 <textarea name="description" placeholder="Opcional" style="width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:0.5rem;"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-save"></i> Guardar Categoría</button>
+            <button type="submit" class="btn btn-primary" style="width:100%"><i class="ti ti-device-floppy"></i> Guardar Categoría</button>
         </form>
     </div>
 
@@ -42,11 +43,12 @@
                         <td>
                             <div style="display: flex; gap: 8px;">
                                 <button onclick="openEditModal('{{ c.id }}', '{{ c.name }}', '{{ c.description or '' }}')" class="btn" style="padding: 5px 10px; background: var(--bg-color); color: var(--text-main);">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="ti ti-pencil"></i>
                                 </button>
                                 <form method="POST" action="{{ url_for('stock.delete_category', id=c.id) }}" onsubmit="return confirm('¿Eliminar categoría?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn" style="padding: 5px 10px; background: #fee2e2; color: #ef4444;">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="ti ti-trash"></i>
                                     </button>
                                 </form>
                             </div>
@@ -68,6 +70,7 @@
     <div class="card" style="width:400px; margin: 100px auto; padding:2rem;">
         <h3>Editar Categoría</h3>
         <form id="editForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label>Nombre</label>
                 <input type="text" name="name" id="edit_name" required>
