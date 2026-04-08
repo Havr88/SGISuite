@@ -47,16 +47,35 @@ Este proyecto ha sido desarrollado y optimizado para la **Hackatón CubePath 202
    cd SGISuite/
    ```
 
-2. **Instalar dependencias:**
+2. **Preparar el entorno virtual :**
+# Instalar dependencias del sistema (Debian/Ubuntu)
    ```bash
-   pip install -r requirements.txt
+sudo apt update && sudo apt install python3-venv -y
    ```
+
+# Crear y activar el entorno virtual
+   ```bash
+python3 -m venv venv
+source venv/bin/activate
+   ```
+
+# Actualizar pip e instalar dependencias del proyecto
+   ```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+   ```
+
+# Instalar dependencias de Python:
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 3. **Ejecutar la aplicación:**
    ```bash
    python run.py
-   ```
-   Accede a `http://localhost:5000` en tu navegador.
+      ```
+Accede a `http://localhost:5000` en tu navegador.
 
 ## 📖 Documentación
 
